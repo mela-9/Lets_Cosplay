@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="dark">
+<html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,18 +10,18 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0">
     <style>
         :root {
-            --page: #17131b;
-            --surface: #211b25;
-            --surface-soft: #2a232f;
-            --surface-pink: #382432;
-            --text: #f6f3f7;
-            --muted: #aaa1ae;
-            --line: #39313e;
-            --pink: #ff6aa7;
-            --pink-deep: #f45193;
-            --green: #52c796;
-            --amber: #f0b74e;
-            --shadow: 0 18px 48px rgb(0 0 0 / 22%);
+            --page: #fbf8fa;
+            --surface: #ffffff;
+            --surface-soft: #f6f1f5;
+            --surface-pink: #fff0f6;
+            --text: #201921;
+            --muted: #77717d;
+            --line: #e9e1e9;
+            --pink: #f45193;
+            --pink-deep: #d9387b;
+            --green: #239b68;
+            --amber: #d99018;
+            --shadow: 0 16px 42px rgb(45 24 40 / 8%);
             font-family: 'Poppins', sans-serif;
         }
         * { box-sizing: border-box; }
@@ -32,12 +32,12 @@
         .muted { color: var(--muted); }
         .small { font-size: .83rem; }
         
-        .role-banner { background: var(--pink); color: #17131b; padding: 8px 16px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+        .role-banner { background: var(--surface-pink); border-bottom: 1px solid var(--pink); padding: 8px 16px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--pink-deep); }
         .site-header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--line); background: var(--surface); }
         .header-main { min-height: 76px; display: flex; align-items: center; justify-content: space-between; }
         .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.08rem; cursor: pointer; }
         .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px; color: white; background: var(--pink); }
-        .brand span { color: var(--pink); }
+        .brand span { color: var(--pink-deep); }
         .main-nav { display: flex; gap: 4px; align-items: center; }
         .nav-link { padding: 10px 14px; color: var(--muted); font-size: .84rem; font-weight: 700; border-radius: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
         .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface-soft); }
@@ -46,16 +46,17 @@
         .user-pill { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 99px; background: var(--surface-soft); border: 1px solid var(--line); }
         
         .button { min-height: 40px; padding: 10px 16px; border: 1px solid transparent; border-radius: 11px; font-weight: 700; font-size: .85rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
-        .button-primary { color: #17131b; background: var(--pink); }
+        .button-primary { color: white; background: var(--pink); }
         .button-secondary { border-color: var(--line); background: var(--surface); color: var(--text); }
-        .button-soft { color: var(--pink); background: var(--surface-pink); }
+        .button-soft { color: var(--pink-deep); background: var(--surface-pink); }
         .button-small { min-height: 32px; padding: 6px 12px; font-size: .78rem; }
+        .button-danger { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
 
         .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 19px; }
         .product-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
         .product-photo { position: relative; aspect-ratio: 4 / 4.6; background: var(--surface-soft); }
         .product-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .product-tag { position: absolute; top: 12px; left: 12px; padding: 4px 8px; color: #ffb8d2; background: #382432; font-size: .68rem; font-weight: 800; border-radius: 6px; }
+        .product-tag { position: absolute; top: 12px; left: 12px; padding: 4px 8px; color: #8b2754; background: #fff0f6; font-size: .68rem; font-weight: 800; border-radius: 6px; }
         .product-info { padding: 14px; }
         .product-meta { display: flex; justify-content: space-between; font-size: .74rem; color: var(--muted); }
         .product-name { font-weight: 700; font-size: 1rem; margin: 8px 0; }
@@ -67,50 +68,37 @@
         .page-intro { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; }
         .page-title { font-size: 2.3rem; margin: 0; }
         .breadcrumb { display: flex; gap: 8px; margin-bottom: 16px; color: var(--muted); font-size: .78rem; }
-        .breadcrumb a { color: var(--pink); text-decoration: none; cursor: pointer; }
+        .breadcrumb a { color: var(--pink-deep); text-decoration: none; cursor: pointer; }
 
         .catalog-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; }
         .filter-panel { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); height: fit-content; }
         .filter-label { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: .82rem; color: var(--muted); cursor: pointer; }
         .filter-label input { accent-color: var(--pink); }
 
-        .ai-hub-box { background: linear-gradient(135deg, #211b25 0%, #382432 100%); border: 1px solid var(--line); color: var(--text); padding: 32px; border-radius: 16px; margin-bottom: 30px; box-shadow: var(--shadow); }
-        .ai-hub-box input { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--line); margin-top: 14px; font-size: .95rem; background: var(--page); color: var(--text); }
+        .admin-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; }
+        .admin-sidebar { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); height: fit-content; }
+        .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 8px; color: var(--text); font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: none; margin-bottom: 6px; }
+        .admin-nav-item:hover, .admin-nav-item.active { background: var(--surface-pink); color: var(--pink-deep); }
+        .table-card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        .data-table th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+        .data-table td { padding: 14px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 
-        .detail-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start; }
-        .detail-main-image { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; background: var(--surface-soft); }
-        .detail-price { font-size: 1.5rem; font-weight: 700; margin: 20px 0; }
-        .size-row { display: flex; gap: 8px; margin-top: 8px; }
-        .size-option { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-weight: 700; cursor: pointer; color: var(--text); }
-        .size-option.selected { color: var(--pink); border-color: var(--pink); background: var(--surface-pink); }
-        .price-box { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin: 20px 0; }
-        .price-line { display: flex; justify-content: space-between; margin: 8px 0; font-size: .85rem; color: var(--muted); }
-        .price-line.total { color: var(--text); font-weight: 800; border-top: 1px solid var(--line); padding-top: 10px; }
-
-        .checkout-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
-        .form-section { padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin-bottom: 16px; }
-        .field { display: grid; gap: 6px; margin-bottom: 12px; }
-        .field label { font-size: .78rem; font-weight: 700; }
-        .input, .textarea, .select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--page); color: var(--text); }
-        .textarea { min-height: 80px; }
-        .notice { padding: 12px; border-radius: 8px; background: #382d22; border: 1px solid #5a4628; font-size: .78rem; color: #f0b74e; }
-
-        .order-card { display: grid; grid-template-columns: 80px 1fr auto; gap: 16px; align-items: center; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin-bottom: 12px; }
-        .order-card img { width: 80px; height: 90px; object-fit: cover; border-radius: 8px; }
-        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 99px; background: var(--surface-pink); color: var(--pink); font-size: .7rem; font-weight: 800; margin-top: 6px; }
+        .ai-hub-box { background: linear-gradient(135deg, #281d2a 0%, #4a2845 100%); color: white; padding: 32px; border-radius: 16px; margin-bottom: 30px; box-shadow: var(--shadow); }
+        .ai-hub-box input { width: 100%; padding: 12px 16px; border-radius: 10px; border: 0; margin-top: 14px; font-size: .95rem; color: var(--text); }
 
         .site-footer { margin-top: 40px; padding: 30px 0; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .82rem; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; }
         .footer-bottom { display: flex; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: .75rem; }
 
-        .toast { position: fixed; right: 20px; bottom: 20px; background: #382432; color: #ffb8d2; padding: 12px 18px; border-radius: 8px; font-size: .85rem; z-index: 50; border: 1px solid var(--pink); box-shadow: var(--shadow); }
+        .toast { position: fixed; right: 20px; bottom: 20px; background: #28212d; color: white; padding: 12px 18px; border-radius: 8px; font-size: .85rem; z-index: 50; box-shadow: var(--shadow); }
     </style>
 </head>
 <body>
     <div id="app"></div>
 
     <script>
-        const STORAGE_KEYS = { orders: 'letscosplay-orders-github', role: 'letscosplay-role-github' };
+        const STORAGE_KEYS = { orders: 'letscosplay-orders-v5', role: 'letscosplay-role-v5' };
 
         const seedProducts = [
             { id: 'c1', name: 'Raiden Shogun', series: 'Genshin Impact', category: 'Game', size: ['S', 'M', 'L'], price: 175000, deposit: 87500, stock: 3, rating: 4.9, tag: 'Terlaris', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cosplay_of_Raiden_Shogun_DSCF1208.jpg/900px-Cosplay_of_Raiden_Shogun_DSCF1208.jpg', description: 'Cosplay Raiden Shogun lengkap dengan wig, obi, dan prop senjata.' },
@@ -121,11 +109,12 @@
 
         const state = {
             page: 'home',
+            role: localStorage.getItem(STORAGE_KEYS.role) || 'customer',
+            adminSection: 'catalog',
             productId: 'c1',
             size: 'M',
             days: 3,
             category: '',
-            aiQuery: '',
             orders: JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || '[]')
         };
 
@@ -145,25 +134,41 @@
             render();
         };
 
+        const toggleRole = () => {
+            state.role = state.role === 'customer' ? 'admin' : 'customer';
+            localStorage.setItem(STORAGE_KEYS.role, state.role);
+            state.page = state.role === 'admin' ? 'admin' : 'home';
+            render();
+            showToast(`Beralih ke Mode: ${state.role === 'admin' ? 'Admin Rental' : 'Penyewa'}`);
+        };
+
         const header = () => `
             <div class="role-banner">
-                <span>✨ <strong>GitHub Pages Live Demo:</strong> Tampilan UI/UX Sesuai Server Lokal</span>
-                <span>Hilma Rida Azzahra (09010282428049)</span>
+                <span>✨ <strong>Mode Demo:</strong> ${state.role === 'admin' ? 'Panel Admin' : 'Situs Penyewa'} (Hilma Rida Azzahra - 09010282428049)</span>
+                <button onclick="toggleRole()" class="button button-primary button-small">Ganti ke Mode ${state.role === 'admin' ? 'Penyewa' : 'Admin'}</button>
             </div>
             <header class="site-header">
                 <div class="container header-main">
                     <a class="brand" onclick="navigate('home')"><span class="brand-mark">LC</span>Let's<span>Cosplay</span></a>
                     <nav class="main-nav">
-                        <a onclick="navigate('home')" class="nav-link ${state.page==='home'?'active':''}">Beranda</a>
-                        <a onclick="navigate('catalog')" class="nav-link ${state.page==='catalog'?'active':''}">Katalog Kostum</a>
-                        <a onclick="navigate('rules')" class="nav-link ${state.page==='rules'?'active':''}">Rules Rental</a>
-                        <a onclick="navigate('guide')" class="nav-link ${state.page==='guide'?'active':''}">Cara Sewa</a>
-                        <a onclick="navigate('orders')" class="nav-link ${state.page==='orders'?'active':''}">Pesanan Saya (${state.orders.length})</a>
-                        <a onclick="navigate('aihub')" class="nav-link ${state.page==='aihub'?'active':''}" style="color:var(--pink);">Telusuri Event Bersama AI</a>
+                        ${state.role === 'admin' ? `
+                            <a onclick="state.adminSection='overview';render()" class="nav-link ${state.adminSection==='overview'?'active':''}">Dashboard Admin</a>
+                            <a onclick="state.adminSection='catalog';render()" class="nav-link ${state.adminSection==='catalog'?'active':''}">Kelola Katalog</a>
+                            <a onclick="state.adminSection='orders';render()" class="nav-link ${state.adminSection==='orders'?'active':''}">Verifikasi Pesanan Masuk</a>
+                            <a onclick="state.adminSection='events';render()" class="nav-link ${state.adminSection==='events'?'active':''}">Kurasi Event</a>
+                            <a onclick="state.adminSection='qr';render()" class="nav-link ${state.adminSection==='qr'?'active':''}">Generator QR Event</a>
+                        ` : `
+                            <a onclick="navigate('home')" class="nav-link ${state.page==='home'?'active':''}">Beranda</a>
+                            <a onclick="navigate('catalog')" class="nav-link ${state.page==='catalog'?'active':''}">Katalog Kostum</a>
+                            <a onclick="navigate('rules')" class="nav-link ${state.page==='rules'?'active':''}">Rules Rental</a>
+                            <a onclick="navigate('guide')" class="nav-link ${state.page==='guide'?'active':''}">Cara Sewa</a>
+                            <a onclick="navigate('orders')" class="nav-link ${state.page==='orders'?'active':''}">Pesanan Saya (${state.orders.length})</a>
+                            <a onclick="navigate('aihub')" class="nav-link ${state.page==='aihub'?'active':''}" style="color:var(--pink-deep);">Telusuri Event Bersama AI</a>
+                        `}
                     </nav>
                     <div class="header-right">
                         <div class="user-pill"><span class="material-symbols-outlined" style="font-size:16px; color:var(--pink);">account_circle</span> Barbara Pavin</div>
-                        <button class="button button-secondary button-small" onclick="showToast('Sesi aktif')">Keluar</button>
+                        <button class="button button-secondary button-small" onclick="toggleRole()">Keluar</button>
                     </div>
                 </div>
             </header>`;
@@ -176,7 +181,7 @@
                         <div><h4>Navigasi</h4><p><a onclick="navigate('catalog')" style="cursor:pointer">Katalog Kostum</a></p><p><a onclick="navigate('rules')" style="cursor:pointer">Rules Rental</a></p><p><a onclick="navigate('orders')" style="cursor:pointer">Pesanan Saya</a></p></div>
                         <div><h4>Kontak</h4><p>WhatsApp: 08xx-xxxx-xxxx</p><p>Kampus Fasilkom Unsri</p></div>
                     </div>
-                    <div class="footer-bottom"><span>© 2026 Let'sCosplay. Deployment GitHub Pages.</span><span>Hilma Rida Azzahra (09010282428049)</span></div>
+                    <div class="footer-bottom"><span>© 2026 Let'sCosplay. Prototype Akademik.</span><span>Hilma Rida Azzahra (09010282428049)</span></div>
                 </div>
             </footer>`;
 
@@ -198,14 +203,14 @@
 
         const homePage = () => `
             <section style="position:relative; min-height:460px; display:flex; align-items:center; color:white; background:#281d2a; padding:60px 0;">
-                <img style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.35;" src="https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1600&q=80" alt="Hero">
+                <img style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.45;" src="https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1600&q=80" alt="Hero">
                 <div class="container" style="position:relative; z-index:1;">
                     <span class="eyebrow" style="color:#ffb8d2">Sewa kostum anime & game terawat</span>
                     <h1 style="margin:12px 0; font-size:3rem; line-height:1.1;">Panggung cerita<br>ada di tanganmu.</h1>
-                    <p style="color:rgb(255 255 255 / 85%); max-width:480px; margin-bottom:24px;">Pilihan kostum berkualitas tinggi untuk convention, pemotretan, dan event spesialmu di Palembang & Indralaya.</p>
+                    <p style="color:rgb(255 255 255 / 85%); max-width:480px; margin-bottom:24px;">Kostum terawat berkualitas tinggi untuk convention, pemotretan, dan event spesialmu di Palembang & Indralaya.</p>
                     <div style="display:flex; gap:12px;">
                         <button class="button button-primary" onclick="navigate('catalog')">Jelajahi Katalog Kostum</button>
-                        <button class="button button-secondary" onclick="navigate('aihub')" style="background:rgba(255,255,255,0.05); color:white; border-color:rgba(255,255,255,0.2)">Telusuri Event Bersama AI</button>
+                        <button class="button button-secondary" onclick="navigate('aihub')" style="background:rgba(255,255,255,0.1); color:white; border-color:rgba(255,255,255,0.3)">Telusuri Event Bersama AI</button>
                     </div>
                 </div>
             </section>
@@ -222,14 +227,15 @@
             return `
             <div class="container page-wrap">
                 <div class="breadcrumb"><a onclick="navigate('home')">Beranda</a><span>/</span><span>Katalog Kostum</span></div>
-                <div class="page-intro"><div><span class="eyebrow">Pilihan Karakter Favorit</span><h1 class="page-title">Katalog Kostum</h1><p>Pilihan kostum terawat untuk convention, pemotretan, dan acara spesialmu.</p></div></div>
+                <div class="page-intro"><div><span class="eyebrow">Temukan Karakter Favorit</span><h1 class="page-title">Katalog kostum</h1><p>Pilihan kostum terawat untuk convention, pemotretan, dan acara spesialmu.</p></div></div>
                 <div class="catalog-layout">
                     <aside class="filter-panel">
-                        <strong>Kategori</strong>
+                        <strong>Filter kostum</strong>
                         <div style="margin-top:10px;">
                             <label class="filter-label"><input type="radio" name="cat" onclick="state.category='';render()" ${!state.category?'checked':''}> Semua kategori</label>
                             <label class="filter-label"><input type="radio" name="cat" onclick="state.category='Anime';render()" ${state.category==='Anime'?'checked':''}> Anime</label>
                             <label class="filter-label"><input type="radio" name="cat" onclick="state.category='Game';render()" ${state.category==='Game'?'checked':''}> Game</label>
+                            <label class="filter-label"><input type="radio" name="cat" onclick="state.category='Film';render()" ${state.category==='Film'?'checked':''}> Film & Serial</label>
                         </div>
                     </aside>
                     <div><div class="product-grid">${list.map(productCard).join('')}</div></div>
@@ -241,12 +247,12 @@
             <div class="container page-wrap">
                 <div class="breadcrumb"><a onclick="navigate('home')">Beranda</a><span>/</span><span>Rules Rental</span></div>
                 <h1 class="page-title" style="margin-bottom:20px;">Aturan Rental Kostum</h1>
-                <div class="form-section">
+                <div style="padding:24px; border:1px solid var(--line); border-radius:12px; background:var(--surface);">
                     <h3>Ketentuan Umum Penyewaan:</h3>
                     <ul style="line-height:1.8; color:var(--muted); font-size:0.9rem;">
                         <li>Penyewa wajib mengirimkan foto identitas (KTP/KTM) yang valid.</li>
                         <li>Penyewaan dihitung per hari dengan durasi sesuai kesepakatan (1, 3, atau 5 hari).</li>
-                        <li>Kostum wajib dikembalikan dalam kondisi bersih (tidak dicuci sendiri jika tidak tahu caranya, cukup dibersihkan nodanya).</li>
+                        <li>Kostum wajib dikembalikan dalam kondisi bersih (tidak dicuci sendiri jika tidak tahu caranya).</li>
                         <li>Deposit (jaminan) akan dikembalikan penuh setelah kostum diterima dan dicek kelengkapannya.</li>
                     </ul>
                 </div>
@@ -256,29 +262,29 @@
             <div class="container page-wrap">
                 <div class="breadcrumb"><a onclick="navigate('home')">Beranda</a><span>/</span><span>Cara Sewa</span></div>
                 <h1 class="page-title" style="margin-bottom:20px;">Panduan Cara Sewa</h1>
-                <div class="form-section">
+                <div style="padding:24px; border:1px solid var(--line); border-radius:12px; background:var(--surface);">
                     <h3>Langkah Mudah Menyewa Kostum:</h3>
                     <ol style="line-height:1.8; color:var(--muted); font-size:0.9rem;">
                         <li>Pilih kostum yang diinginkan melalui menu <strong>Katalog Kostum</strong>.</li>
                         <li>Tentukan ukuran badan (S, M, L, XL) serta durasi hari penyewaan.</li>
-                        <li>Klik tombol pesan/lanjut ke checkout dan isi data diri lengkap serta alamat pengiriman.</li>
+                        <li>Isi data diri lengkap serta alamat pengiriman di Palembang/Indralaya.</li>
                         <li>Lakukan pembayaran DP minimal 50% dan unggah bukti transfer.</li>
-                        <li>Tunggu verifikasi dari admin, dan kostum siap dikirim ke lokasimu di Palembang / Indralaya!</li>
+                        <li>Tunggu verifikasi admin dan kostum siap digunakan untuk event!</li>
                     </ol>
                 </div>
             </div>`;
 
         const aihubPage = () => `
             <div class="container page-wrap">
-                <div class="breadcrumb"><a onclick="navigate('home')">Beranda</a><span>/</span><span>Telusuri Event & AI</span></div>
+                <div class="breadcrumb"><a onclick="navigate('home')">Beranda</a><span>/</span><span>Telusuri Event Bersama AI</span></div>
                 <div class="ai-hub-box">
-                    <span class="eyebrow" style="color:var(--pink)">AI Event & Costume Hub</span>
+                    <span class="eyebrow" style="color:#ffb8d2">Asisten Cerdas Let'sCosplay</span>
                     <h1 style="margin:8px 0 12px 0; font-size:2rem;">Telusuri Event Bersama AI</h1>
-                    <p class="muted" style="max-width:600px; margin-bottom:20px;">Temukan rekomendasi event cosplay dan pencocokan karakter kostum secara cerdas menggunakan asisten AI.</p>
-                    <input type="text" placeholder="Ketik preferensi atau nama event (contoh: Matsuri Palembang, Genshin Impact)..." oninput="renderAIResults(this.value)">
+                    <p class="muted" style="color:rgba(255,255,255,0.8); max-width:600px; margin-bottom:20px;">Temukan rekomendasi event dan pencocokan kostum terbaik secara instan.</p>
+                    <input type="text" placeholder="Ketik preferensi atau nama event (contoh: Matsuri Palembang)..." oninput="renderAIResults(this.value)">
                 </div>
                 <div id="ai-results">
-                    <h3>Hasil Pencarian & Rekomendasi:</h3>
+                    <h3>Hasil Pencarian Pintar:</h3>
                     <div class="product-grid" style="margin-top:16px;">${seedProducts.map(productCard).join('')}</div>
                 </div>
             </div>`;
@@ -290,7 +296,7 @@
             container.innerHTML = `
                 <h3>Hasil Pencarian Pintar (${filtered.length} ditemukan):</h3>
                 <div class="product-grid" style="margin-top:16px;">
-                    ${filtered.length ? filtered.map(productCard).join('') : '<div style="grid-column:1/-1; padding:30px; text-align:center;" class="muted">Tidak ditemukan hasil yang cocok.</div>'}
+                    ${filtered.length ? filtered.map(productCard).join('') : '<div style="grid-column:1/-1; padding:30px; text-align:center;" class="muted">Tidak ditemukan hasil.</div>'}
                 </div>`;
         };
 
@@ -301,26 +307,26 @@
             return `
             <div class="container page-wrap">
                 <div class="breadcrumb"><a onclick="navigate('catalog')">Katalog</a><span>/</span><span>${p.name}</span></div>
-                <div class="detail-layout">
-                    <div><img class="detail-main-image" src="${p.image}" alt="${p.name}"></div>
+                <div class="detail-layout" style="display:grid; grid-template-columns:1fr 1fr; gap:36px;">
+                    <div><img src="${p.image}" alt="${p.name}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:16px;"></div>
                     <div>
                         <span class="eyebrow">${p.series}</span>
                         <h1 style="margin:8px 0;">${p.name}</h1>
                         <p class="muted">${p.description}</p>
-                        <div class="detail-price">${money(p.price)} <small class="muted" style="font-size:0.8rem">/ hari</small></div>
-                        <div class="field"><label>Pilih Ukuran Badan</label>
-                            <div class="size-row">${p.size.map(s => `<button class="size-option ${state.size===s?'selected':''}" onclick="state.size='${s}';render()">${s}</button>`).join('')}</div>
+                        <div style="font-size:1.5rem; font-weight:700; margin:20px 0;">${money(p.price)} <small class="muted" style="font-size:0.8rem">/ hari</small></div>
+                        <div style="margin-bottom:12px;"><label style="font-size:0.78rem; font-weight:700;">Pilih Ukuran Badan</label>
+                            <div style="display:flex; gap:8px; margin-top:8px;">${p.size.map(s => `<button style="width:40px; height:40px; border:1px solid var(--line); border-radius:8px; background:${state.size===s?'var(--surface-pink)':'var(--surface)'}; color:${state.size===s?'var(--pink-deep)':'var(--text)'}; font-weight:700; cursor:pointer;" onclick="state.size='${s}';render()">${s}</button>`).join('')}</div>
                         </div>
-                        <div class="field" style="margin-top:12px;"><label>Lama Sewa</label>
-                            <select class="select" onchange="state.days=Number(this.value);render()">
+                        <div style="margin-bottom:12px;"><label style="font-size:0.78rem; font-weight:700;">Lama Sewa</label>
+                            <select style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--surface); margin-top:6px;" onchange="state.days=Number(this.value);render()">
                                 ${[1,2,3,5,7].map(d => `<option value="${d}" ${state.days===d?'selected':''}>${d} Hari</option>`).join('')}
                             </select>
                         </div>
-                        <div class="price-box">
-                            <div class="price-line"><span>Sewa (${state.days} hari)</span><strong>${money(subtotal)}</strong></div>
-                            <div class="price-line"><span>Pengiriman JNE</span><strong>Rp18.000</strong></div>
-                            <div class="price-line"><span>Deposit Refundable</span><strong>${money(p.deposit)}</strong></div>
-                            <div class="price-line total"><span>Total Estimasi</span><strong>${money(total)}</strong></div>
+                        <div style="padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--surface); margin:20px 0;">
+                            <div style="display:flex; justify-content:between; margin:8px 0; font-size:0.85rem; color:var(--muted);"><span>Sewa (${state.days} hari)</span><strong>${money(subtotal)}</strong></div>
+                            <div style="display:flex; justify-content:between; margin:8px 0; font-size:0.85rem; color:var(--muted);"><span>Pengiriman JNE</span><strong>Rp18.000</strong></div>
+                            <div style="display:flex; justify-content:between; margin:8px 0; font-size:0.85rem; color:var(--muted);"><span>Deposit Refundable</span><strong>${money(p.deposit)}</strong></div>
+                            <div style="display:flex; justify-content:between; margin:8px 0; font-size:0.85rem; font-weight:800; border-top:1px solid var(--line); padding-top:10px;"><span>Total Estimasi</span><strong>${money(total)}</strong></div>
                         </div>
                         <button class="button button-primary" style="width:100%;" onclick="navigate('checkout')">Lanjut ke Pemesanan</button>
                     </div>
@@ -334,27 +340,27 @@
             return `
             <div class="container page-wrap">
                 <div class="breadcrumb"><a onclick="navigate('detail')">Detail</a><span>/</span><span>Checkout</span></div>
-                <div class="page-intro"><div><span class="eyebrow">Formulir</span><h1 class="page-title">Penyewaan Kostum</h1></div></div>
-                <form onsubmit="event.preventDefault(); submitOrder('${p.id}')" class="checkout-layout">
+                <h1 class="page-title" style="margin-bottom:20px;">Penyewaan Kostum</h1>
+                <form onsubmit="event.preventDefault(); submitOrder('${p.id}')" style="display:grid; grid-template-columns:1fr 340px; gap:24px;">
                     <div>
-                        <div class="form-section">
+                        <div style="padding:20px; border:1px solid var(--line); border-radius:12px; background:var(--surface); margin-bottom:16px;">
                             <h3 style="margin-top:0;">1. Data Diri Penyewa</h3>
-                            <div class="field"><label>Nama Lengkap</label><input class="input" id="c-name" required placeholder="Hilma Rida"></div>
-                            <div class="field"><label>Nomor WhatsApp</label><input class="input" id="c-phone" required type="tel" placeholder="08xxxxxxxxxx"></div>
-                            <div class="field"><label>Alamat Lengkap Pengiriman</label><textarea class="textarea" id="c-addr" required placeholder="Jl. Palembang - Indralaya..."></textarea></div>
+                            <div style="margin-bottom:12px;"><label style="font-size:0.78rem; font-weight:700;">Nama Lengkap</label><input style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; margin-top:6px;" id="c-name" required placeholder="Hilma Rida"></div>
+                            <div style="margin-bottom:12px;"><label style="font-size:0.78rem; font-weight:700;">Nomor WhatsApp</label><input style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; margin-top:6px;" id="c-phone" required type="tel" placeholder="08xxxxxxxxxx"></div>
+                            <div style="margin-bottom:12px;"><label style="font-size:0.78rem; font-weight:700;">Alamat Pengiriman</label><textarea style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; margin-top:6px; min-height:80px;" id="c-addr" required placeholder="Jl. Palembang - Indralaya..."></textarea></div>
                         </div>
-                        <div class="form-section">
-                            <h3 style="margin-top:0;">2. Pembayaran DP (Minimal 50%)</h3>
-                            <div class="notice">Transfer DP sebesar <strong>${money(Math.ceil(total*0.5))}</strong> ke Rekening BCA / DANA Let'sCosplay, lalu unggah bukti transfer di bawah.</div>
-                            <div class="field" style="margin-top:12px;"><label>Unggah Bukti Transfer</label><input class="input" type="file" required accept="image/*"></div>
+                        <div style="padding:20px; border:1px solid var(--line); border-radius:12px; background:var(--surface);">
+                            <h3 style="margin-top:0;">2. Pembayaran DP (50%)</h3>
+                            <div style="padding:12px; border-radius:8px; background:#fff8e6; border:1px solid #f0d588; font-size:0.78rem; color:#7a5800;">Transfer DP sebesar <strong>${money(Math.ceil(total*0.5))}</strong> ke Rekening BCA / DANA Let'sCosplay, lalu unggah bukti transfer.</div>
+                            <div style="margin-top:12px;"><label style="font-size:0.78rem; font-weight:700;">Bukti Transfer</label><input type="file" required style="width:100%; margin-top:6px;"></div>
                         </div>
                     </div>
                     <div>
-                        <div class="form-section" style="position:sticky; top:90px;">
+                        <div style="padding:20px; border:1px solid var(--line); border-radius:12px; background:var(--surface);">
                             <h3 style="margin-top:0;">Ringkasan</h3>
                             <p style="margin:4px 0;"><strong>${p.name}</strong></p>
                             <p class="muted small" style="margin:0 0 12px 0;">Ukuran ${state.size} · ${state.days} hari</p>
-                            <div class="price-line total"><span>Total Tagihan</span><strong>${money(total)}</strong></div>
+                            <div style="display:flex; justify-content:between; font-weight:800; border-top:1px solid var(--line); padding-top:10px;"><span>Total Tagihan</span><strong>${money(total)}</strong></div>
                             <button type="submit" class="button button-primary" style="width:100%; margin-top:16px;">Kirim Pesanan</button>
                         </div>
                     </div>
@@ -393,11 +399,70 @@
                         </div>
                         <div style="text-align:right;"><strong>${money(o.total)}</strong></div>
                     </div>
-                `).join('') : '<div style="text-align:center; padding:40px; border:1px dashed var(--line); border-radius:12px;" class="muted">Belum ada pesanan aktif. Yuk pilih kostum favoritmu!</div>'}
+                `).join('') : '<div style="text-align:center; padding:40px; border:1px dashed var(--line); border-radius:12px;" class="muted">Belum ada pesanan aktif.</div>'}
+            </div>`;
+
+        const adminPage = () => `
+            <div class="container page-wrap">
+                <div class="admin-layout">
+                    <aside class="admin-sidebar">
+                        <a onclick="state.adminSection='catalog';render()" class="admin-nav-item ${state.adminSection==='catalog'?'active':''}"><span class="material-symbols-outlined" style="font-size:18px;">checkroom</span> Kelola Katalog</a>
+                        <a onclick="state.adminSection='orders';render()" class="admin-nav-item ${state.adminSection==='orders'?'active':''}"><span class="material-symbols-outlined" style="font-size:18px;">receipt_long</span> Verifikasi Pesanan Masuk</a>
+                        <a onclick="state.adminSection='events';render()" class="admin-nav-item ${state.adminSection==='events'?'active':''}"><span class="material-symbols-outlined" style="font-size:18px;">campaign</span> Kurasi Iklan Event</a>
+                        <a onclick="state.adminSection='qr';render()" class="admin-nav-item ${state.adminSection==='qr'?'active':''}"><span class="material-symbols-outlined" style="font-size:18px;">qr_code_2</span> Generator QR Code Event</a>
+                        <a onclick="toggleRole()" class="admin-nav-item" style="margin-top:20px; color:var(--pink-deep);"><span class="material-symbols-outlined" style="font-size:18px;">storefront</span> Lihat toko (Penyewa)</a>
+                    </aside>
+                    <main>
+                        ${state.adminSection==='catalog' ? `
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                                <h1 style="margin:0; font-size:1.8rem;">Kelola Katalog</h1>
+                                <button class="button button-primary button-small" onclick="showToast('Simulasi tambah kostum')">+ Tambah Kostum</button>
+                            </div>
+                            <div class="table-card">
+                                <div style="margin-bottom:16px;"><input type="text" placeholder="Cari nama kostum..." style="width:300px; padding:8px 12px; border:1px solid var(--line); border-radius:8px;"></div>
+                                <table class="data-table">
+                                    <thead>
+                                        <tr><th>Kostum</th><th>Harga / Hari</th><th>Stok</th><th>Deposit</th><th>Aksi</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        ${seedProducts.map(p => `
+                                            <tr>
+                                                <td>
+                                                    <div style="display:flex; align-items:center; gap:12px;">
+                                                        <img src="${p.image}" alt="" style="width:40px; height:45px; object-fit:cover; border-radius:6px;">
+                                                        <div><strong>${p.name}</strong><br><span class="muted" style="font-size:0.75rem;">${p.category} · ${p.series}</span></div>
+                                                    </div>
+                                                </td>
+                                                <td><strong>${money(p.price)}</strong></td>
+                                                <td>${p.stock} Unit</td>
+                                                <td>${money(p.deposit)}</td>
+                                                <td>
+                                                    <div style="display:flex; gap:6px;">
+                                                        <button class="button button-secondary button-small" onclick="showToast('Edit kostum')">Ubah</button>
+                                                        <button class="button button-danger button-small" onclick="showToast('Hapus kostum')"><span class="material-symbols-outlined" style="font-size:14px;">delete</span></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ` : state.adminSection==='orders' ? `
+                            <h1 style="margin-top:0; font-size:1.8rem;">Verifikasi Pesanan Masuk</h1>
+                            <div class="table-card"><p class="muted">Belum ada pesanan masuk yang perlu diverifikasi admin.</p></div>
+                        ` : state.adminSection==='events' ? `
+                            <h1 style="margin-top:0; font-size:1.8rem;">Kurasi Iklan Event</h1>
+                            <div class="table-card"><p class="muted">Fitur kurasi banner dan event komunitas aktif.</p></div>
+                        ` : `
+                            <h1 style="margin-top:0; font-size:1.8rem;">Generator QR Code Event</h1>
+                            <div class="table-card"><p class="muted">Scan QR Code untuk presensi atau promo event komunitas.</p></div>
+                        `}
+                    </main>
+                </div>
             </div>`;
 
         const render = () => {
-            const content = 
+            const content = state.role === 'admin' ? adminPage() : (
                 state.page === 'home' ? homePage() :
                 state.page === 'catalog' ? catalogPage() :
                 state.page === 'rules' ? rulesPage() :
@@ -405,8 +470,8 @@
                 state.page === 'aihub' ? aihubPage() :
                 state.page === 'detail' ? detailPage() :
                 state.page === 'checkout' ? checkoutPage() :
-                state.page === 'orders' ? ordersPage() : homePage();
-
+                state.page === 'orders' ? ordersPage() : homePage()
+            );
             document.getElementById('app').innerHTML = header() + `<main>${content}</main>` + footer();
         };
 
