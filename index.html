@@ -1,200 +1,927 @@
-<!DOCTYPE html>
-<html lang="id" class="dark" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Let'sCosplay - Admin Rental & AI Ad Hub</title>
-    <script>
+html[data-theme='dark'] {
+        color-scheme: dark;
+        --page: #17131b;
+        --surface: #211b25;
+        --surface-soft: #2a232f;
+        --surface-pink: #382432;
+        --text: #f6f3f7;
+        --muted: #aaa1ae;
+        --line: #39313e;
+        --pink: #ff6aa7;
+        --pink-deep: #f45193;
+        --green: #52c796;
+        --amber: #f0b74e;
+        --red: #fa7587;
+        --shadow: 0 18px 48px rgb(0 0 0 / 22%);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+        min-width: 320px;
+        margin: 0;
+        color: var(--text);
+        background: radial-gradient(ellipse at 2% 2%, rgb(244 81 147 / 8%), transparent 26rem), var(--page);
+        transition: color .2s ease, background-color .2s ease;
+    }
+    button, input, select, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .material-symbols-outlined { font-size: 20px; line-height: 1; vertical-align: middle; font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 24; }
+    :focus-visible { outline: 3px solid rgb(244 81 147 / 48%); outline-offset: 3px; }
+
+    #app { min-height: 100vh; display: flex; flex-direction: column; }
+    .container { width: min(1200px, calc(100% - 48px)); margin-inline: auto; }
+    .display, h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; letter-spacing: 0; }
+    .display { font-size: 4rem; line-height: 1.02; }
+    .page-title { margin: 0; font-size: 2.75rem; line-height: 1.08; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin: 52px 0 22px; }
+    .section-heading h2 { margin: 0; font-size: 1.9rem; }
+    .eyebrow { color: var(--pink-deep); text-transform: uppercase; font-size: .73rem; font-weight: 800; letter-spacing: .12em; }
+    .muted { color: var(--muted); }
+    .small { font-size: .83rem; }
+    .stack { display: grid; gap: 18px; }
+
+    .site-header { position: sticky; z-index: 20; top: 0; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--page) 91%, transparent); backdrop-filter: blur(18px); }
+    .header-main { min-height: 76px; display: flex; align-items: center; gap: 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px; color: white; background: var(--pink); font: 700 1rem 'Space Grotesk', sans-serif; box-shadow: 0 5px 16px rgb(244 81 147 / 24%); }
+    .brand-name { font: 700 1.08rem 'Space Grotesk', sans-serif; }
+    .brand-name span { color: var(--pink-deep); }
+    .main-nav { display: flex; flex: 1; align-items: center; justify-content: center; gap: 5px; }
+    .nav-link { padding: 10px 12px; color: var(--muted); font-size: .86rem; font-weight: 700; border-radius: 10px; transition: background .18s, color .18s; }
+    .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface-soft); }
+    .header-actions { display: flex; align-items: center; gap: 9px; }
+    .icon-button, .button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 11px; cursor: pointer; font-weight: 700; transition: transform .16s ease, background .16s ease, border-color .16s ease; }
+    .icon-button { width: 42px; padding: 0; border-color: var(--line); background: var(--surface); }
+    .button { padding: 11px 17px; font-size: .88rem; }
+    .button:hover, .icon-button:hover { transform: translateY(-1px); }
+    .button-primary { color: white; background: var(--pink); box-shadow: 0 7px 18px rgb(244 81 147 / 20%); }
+    .button-primary:hover { background: var(--pink-deep); }
+    .button-secondary { border-color: var(--line); background: var(--surface); }
+    .button-soft { color: var(--pink-deep); background: var(--surface-pink); }
+    .button-quiet { color: var(--muted); background: transparent; }
+    .button-danger { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+    .button-small { min-height: 35px; padding: 8px 11px; border-radius: 9px; font-size: .78rem; }
+    .mobile-menu { display: none; }
+
+    main { flex: 1; }
+    .home-hero { position: relative; min-height: 540px; display: flex; align-items: center; overflow: hidden; color: white; background: #281d2a; }
+    .hero-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 38%; opacity: .8; }
+    .home-hero::after { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, rgb(20 13 22 / 86%) 0%, rgb(20 13 22 / 64%) 42%, rgb(20 13 22 / 8%) 100%), linear-gradient(0deg, rgb(20 13 22 / 30%), transparent 40%); }
+    .hero-content { position: relative; z-index: 1; width: min(1200px, calc(100% - 48px)); margin: 0 auto; padding: 82px 0 104px; }
+    .hero-copy { max-width: 600px; }
+    .hero-content .eyebrow { color: #ffb8d2; }
+    .hero-content h1 { margin: 17px 0; max-width: 580px; }
+    .hero-content p { max-width: 470px; color: rgb(255 255 255 / 82%); font-size: 1.04rem; line-height: 1.7; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 28px; }
+    .hero-actions .button-secondary { color: white; border-color: rgb(255 255 255 / 40%); background: rgb(255 255 255 / 10%); backdrop-filter: blur(8px); }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 42px; color: rgb(255 255 255 / 80%); font-size: .8rem; }
+    .hero-meta strong { display: block; color: white; font: 700 1.25rem 'Space Grotesk', sans-serif; }
+    .search-panel { position: relative; z-index: 2; display: grid; grid-template-columns: 1.3fr 1fr 1fr auto; gap: 8px; margin-top: -35px; padding: 11px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+    .search-control { min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 13px; border-right: 1px solid var(--line); }
+    .search-control .material-symbols-outlined { color: var(--pink-deep); }
+    .search-control input, .search-control select { width: 100%; min-width: 0; height: 44px; color: var(--text); border: 0; outline: 0; background: transparent; font-size: .86rem; }
+    .search-control select { cursor: pointer; }
+    .search-panel .button { align-self: stretch; }
+    .content-section { padding-block: 4px 18px; }
+    .category-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 13px; }
+    .category-tile { min-height: 125px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-weight: 700; font-size: .82rem; transition: border .18s, transform .18s, box-shadow .18s; cursor: pointer; }
+    .category-tile:hover { transform: translateY(-3px); border-color: var(--pink); box-shadow: var(--shadow); }
+    .category-icon { width: 45px; height: 45px; display: grid; place-items: center; color: var(--pink-deep); border-radius: 14px; background: var(--surface-pink); }
+    .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 19px; }
+    .product-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); transition: transform .2s ease, box-shadow .2s ease; }
+    .product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .product-photo { position: relative; overflow: hidden; aspect-ratio: 4 / 4.6; background: var(--surface-soft); }
+    .product-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+    .product-card:hover .product-photo img { transform: scale(1.035); }
+    .product-tag { position: absolute; top: 12px; left: 12px; padding: 6px 9px; color: #8b2754; border-radius: 7px; background: #fff0f6; font-size: .68rem; font-weight: 800; }
+    .favorite-button { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgb(255 255 255 / 88%); cursor: pointer; }
+    .favorite-button.is-favorite { color: #d9387b; }
+    .product-info { padding: 14px; }
+    .product-meta { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .74rem; }
+    .product-name { margin: 8px 0 9px; font: 700 1rem 'Space Grotesk', sans-serif; line-height: 1.3; }
+    .product-price { font-weight: 800; font-size: .98rem; }
+    .product-price small { color: var(--muted); font-size: .75rem; font-weight: 500; }
+    .availability { display: inline-flex; align-items: center; gap: 6px; color: var(--green); font-size: .72rem; font-weight: 700; }
+    .availability::before { width: 6px; height: 6px; content: ''; border-radius: 50%; background: currentColor; }
+    .card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-top: 13px; }
+    .rating { display: flex; align-items: center; gap: 4px; font-size: .78rem; font-weight: 800; }
+    .rating .material-symbols-outlined { color: var(--amber); font-size: 17px; }
+    .photo-credit { display: block; margin-top: 8px; font-size: .68rem; color: var(--muted); }
+    .photo-credit a { color: var(--pink-deep); text-decoration: underline; }
+
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; padding-block: 8px 28px; }
+    .step-item { position: relative; padding-top: 7px; }
+    .step-number { width: 40px; height: 40px; display: grid; place-items: center; color: var(--pink-deep); border-radius: 12px; background: var(--surface-pink); font: 700 1rem 'Space Grotesk', sans-serif; }
+    .step-item h3 { margin: 15px 0 7px; font-size: 1rem; }
+    .step-item p { max-width: 240px; margin: 0; color: var(--muted); font-size: .83rem; line-height: 1.65; }
+    .event-strip { display: grid; grid-template-columns: 1.1fr 1fr; overflow: hidden; border-radius: 16px; color: white; background: #281e29; }
+    .event-art { min-height: 270px; background: center / cover no-repeat url('https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=85'); }
+    .event-copy { align-self: center; padding: 35px clamp(22px, 4vw, 52px); }
+    .event-copy .eyebrow { color: #ffb8d2; }
+    .event-copy h2 { margin: 10px 0; font-size: 1.75rem; }
+    .event-copy p { color: rgb(255 255 255 / 75%); line-height: 1.6; }
+    .site-footer { margin-top: 56px; padding: 45px 0 22px; color: var(--muted); border-top: 1px solid var(--line); background: var(--surface); }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 30px; }
+    .footer-grid h4 { margin: 3px 0 13px; color: var(--text); font-size: .9rem; }
+    .footer-links { display: grid; gap: 9px; font-size: .82rem; }
+    .footer-note { max-width: 280px; font-size: .82rem; line-height: 1.6; }
+    .footer-bottom { display: flex; justify-content: space-between; gap: 12px; margin-top: 35px; padding-top: 18px; border-top: 1px solid var(--line); font-size: .75rem; }
+
+    .page-wrap { padding: 40px 0 68px; }
+    .page-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .page-intro p { max-width: 540px; margin: 9px 0 0; color: var(--muted); line-height: 1.6; }
+    .breadcrumb { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; color: var(--muted); font-size: .78rem; }
+    .catalog-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); align-items: start; gap: 25px; }
+    .filter-panel { position: sticky; top: 96px; padding: 19px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .filter-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 17px; font: 700 1rem 'Space Grotesk', sans-serif; }
+    .filter-group { padding: 15px 0; border-top: 1px solid var(--line); }
+    .filter-group h4 { margin: 0 0 11px; font-size: .8rem; }
+    .filter-label { display: flex; align-items: center; gap: 8px; margin: 9px 0; color: var(--muted); font-size: .8rem; cursor: pointer; }
+    .filter-label input { accent-color: var(--pink); }
+    .field { display: grid; gap: 7px; }
+    .field label, .field-label { font-size: .78rem; font-weight: 700; }
+    .input, .select, .textarea { width: 100%; min-height: 43px; padding: 10px 12px; color: var(--text); border: 1px solid var(--line); border-radius: 9px; background: var(--surface); outline: none; }
+    .input:focus, .select:focus, .textarea:focus { border-color: var(--pink); box-shadow: 0 0 0 3px rgb(244 81 147 / 12%); }
+    .textarea { min-height: 95px; resize: vertical; }
+    .input[type='file'] { padding: 9px; font-size: .78rem; }
+    .filter-range { display: grid; gap: 8px; }
+    .filter-range input[type='range'] { width: 100%; accent-color: var(--pink); }
+    .catalog-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 15px; }
+    .catalog-toolbar .select { width: auto; min-width: 160px; }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .chip { padding: 7px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; background: var(--surface); font-size: .74rem; }
+    .pagination { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 28px; }
+    .pagination button { width: 37px; height: 37px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); cursor: pointer; }
+    .pagination button.active { color: white; border-color: var(--pink); background: var(--pink); }
+    .empty-state { grid-column: 1 / -1; padding: 48px 20px; color: var(--muted); text-align: center; border: 1px dashed var(--line); border-radius: 14px; }
+
+    .detail-layout { display: grid; grid-template-columns: 1.08fr .92fr; gap: 42px; align-items: start; }
+    .detail-main-image { width: 100%; aspect-ratio: 1 / 1.04; object-fit: cover; border-radius: 15px; background: var(--surface-soft); }
+    .detail-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .detail-thumbs img { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid var(--line); border-radius: 9px; cursor: pointer; }
+    .detail-content { position: sticky; top: 100px; }
+    .detail-content h1 { margin: 9px 0 12px; font-size: 2.4rem; line-height: 1.12; }
+    .detail-price { margin: 23px 0; font: 700 1.5rem 'Space Grotesk', sans-serif; }
+    .detail-price small { color: var(--muted); font: 500 .9rem 'Poppins', sans-serif; }
+    .detail-blurb { color: var(--muted); line-height: 1.7; }
+    .spec-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 19px 0; }
+    .spec-chip { padding: 8px 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; font-size: .76rem; }
+    .price-box { margin: 20px 0; padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .price-line { display: flex; justify-content: space-between; gap: 10px; margin: 9px 0; color: var(--muted); font-size: .83rem; }
+    .price-line.total { padding-top: 12px; color: var(--text); border-top: 1px solid var(--line); font-weight: 800; }
+    .size-row, .quantity-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .size-option { min-width: 42px; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; }
+    .size-option.selected { color: var(--pink-deep); border-color: var(--pink); background: var(--surface-pink); font-weight: 800; }
+    .addon-list { display: grid; gap: 9px; margin-top: 11px; }
+    .addon-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; font-size: .8rem; }
+    .addon-option label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .addon-option input { accent-color: var(--pink); }
+
+    .rules-grid { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 34px; }
+    .rules-nav { position: sticky; top: 100px; align-self: start; display: grid; gap: 5px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .rules-nav a { padding: 10px; color: var(--muted); border-radius: 8px; font-size: .81rem; font-weight: 700; }
+    .rules-nav a:hover { color: var(--pink-deep); background: var(--surface-pink); }
+    .rules-content { max-width: 780px; }
+    .rules-content section { padding: 0 0 23px; margin-bottom: 23px; border-bottom: 1px solid var(--line); scroll-margin-top: 100px; }
+    .rules-content h2 { margin: 0 0 10px; font-size: 1.2rem; }
+    .rules-content p, .rules-content li { color: var(--muted); font-size: .88rem; line-height: 1.75; }
+    .rules-content ul { padding-left: 20px; }
+
+    .checkout-layout { display: grid; grid-template-columns: minmax(0, 1fr) 350px; align-items: start; gap: 25px; }
+    .checkout-sections { display: grid; gap: 15px; }
+    .form-section { padding: 22px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .form-section h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; font-size: 1rem; }
+    .section-index { width: 27px; height: 27px; display: grid; place-items: center; color: var(--pink-deep); border-radius: 8px; background: var(--surface-pink); font-size: .78rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .span-2 { grid-column: 1 / -1; }
+    .readonly-product { display: flex; align-items: center; gap: 14px; }
+    .readonly-product img { width: 73px; height: 82px; object-fit: cover; border-radius: 9px; }
+    .readonly-product h3 { margin: 0 0 5px; font-size: .96rem; }
+    .payment-choice { display: flex; gap: 9px; }
+    .payment-choice label { flex: 1; padding: 12px; border: 1px solid var(--line); border-radius: 9px; font-size: .8rem; cursor: pointer; }
+    .payment-choice input { accent-color: var(--pink); }
+    .checkline { display: flex; align-items: start; gap: 9px; color: var(--muted); font-size: .81rem; line-height: 1.55; }
+    .checkline input { margin-top: 3px; accent-color: var(--pink); }
+    .sticky-summary { position: sticky; top: 96px; padding: 20px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); box-shadow: 0 8px 26px rgb(45 24 40 / 5%); }
+    .sticky-summary h2 { margin: 0 0 17px; font-size: 1rem; }
+    .deposit-note { padding: 11px; color: var(--green); border-radius: 9px; background: color-mix(in srgb, var(--green) 10%, transparent); font-size: .75rem; line-height: 1.55; }
+    .notice { padding: 12px; border: 1px solid color-mix(in srgb, var(--amber) 28%, var(--line)); border-radius: 9px; background: color-mix(in srgb, var(--amber) 8%, var(--surface)); font-size: .78rem; line-height: 1.55; }
+    .success-panel { max-width: 720px; margin: 25px auto; padding: 38px; text-align: center; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); box-shadow: var(--shadow); }
+    .success-icon { width: 64px; height: 64px; display: grid; place-items: center; margin: 0 auto 17px; color: white; border-radius: 20px; background: var(--green); }
+    .success-panel h1 { font-size: 2rem; }
+    .tracking-list { display: grid; gap: 0; margin: 25px 0; text-align: left; }
+    .tracking-step { position: relative; display: grid; grid-template-columns: 25px 1fr; gap: 12px; min-height: 56px; }
+    .tracking-step:not(:last-child)::before { position: absolute; top: 20px; bottom: -5px; left: 9px; width: 2px; content: ''; background: var(--line); }
+    .tracking-dot { position: relative; z-index: 1; width: 20px; height: 20px; display: grid; place-items: center; color: white; border-radius: 50%; background: var(--line); font-size: .6rem; }
+    .tracking-step.done .tracking-dot, .tracking-step.current .tracking-dot { background: var(--green); }
+    .tracking-step strong { font-size: .82rem; }
+    .tracking-step small { display: block; margin-top: 3px; color: var(--muted); font-size: .72rem; }
+
+    .orders-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 7px; margin-bottom: 20px; }
+    .orders-tab { flex: none; padding: 9px 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; background: var(--surface); font-size: .8rem; font-weight: 700; cursor: pointer; }
+    .orders-tab.active { color: var(--pink-deep); border-color: var(--pink); background: var(--surface-pink); }
+    .order-card { display: grid; grid-template-columns: 94px 1fr auto; align-items: center; gap: 17px; padding: 17px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .order-card img { width: 94px; height: 100px; object-fit: cover; border-radius: 9px; }
+    .order-card h3 { margin: 0 0 6px; font-size: .98rem; }
+    .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; color: var(--amber); border-radius: 99px; background: color-mix(in srgb, var(--amber) 12%, transparent); font-size: .68rem; font-weight: 800; }
+    .status-pill.success { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
+    .status-pill.danger { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+
+    .auth-layout { min-height: 650px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); box-shadow: var(--shadow); }
+    .auth-art { position: relative; min-height: 600px; display: flex; align-items: end; padding: 36px; overflow: hidden; color: white; background: #251b28; }
+    .auth-art::before { position: absolute; inset: 0; content: ''; background: linear-gradient(0deg, rgb(24 15 26 / 83%), transparent 78%), url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1100&q=85') center / cover; }
+    .auth-art-content { position: relative; }
+    .auth-art-content h2 { max-width: 400px; margin: 10px 0; font-size: 2rem; }
+    .auth-form-wrap { align-self: center; width: min(440px, 100%); padding: 45px; margin: 0 auto; }
+    .auth-form-wrap h1 { margin: 0 0 7px; font-size: 1.75rem; }
+    .auth-form { display: grid; gap: 15px; margin-top: 24px; }
+    .auth-switch { margin-top: 18px; color: var(--muted); font-size: .82rem; }
+    .auth-error { color: var(--red); font-weight: 700; }
+    .text-button { padding: 0; color: var(--pink-deep); border: 0; background: transparent; font-weight: 800; cursor: pointer; }
+
+    .organizer-hero { display: grid; grid-template-columns: 1fr .8fr; align-items: center; gap: 30px; min-height: 270px; padding: 38px; color: white; border-radius: 16px; background: linear-gradient(110deg, #281b29, #56283f); }
+    .organizer-hero h1 { max-width: 620px; margin: 12px 0; font-size: 3rem; }
+    .organizer-hero p { max-width: 540px; color: rgb(255 255 255 / 74%); line-height: 1.65; }
+    .organizer-hero-art { min-height: 195px; border-radius: 11px; background: center / cover no-repeat url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=1000&q=80'); }
+    .organizer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+    .panel { padding: 22px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .panel h2 { margin: 0 0 17px; font-size: 1.1rem; }
+    .poster-preview { min-height: 170px; display: grid; place-items: center; overflow: hidden; color: var(--muted); border: 1px dashed var(--line); border-radius: 10px; background: var(--surface-soft); text-align: center; }
+    .poster-preview img { width: 100%; height: 220px; object-fit: cover; }
+    .tier-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tier-card { position: relative; padding: 14px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+    .tier-card:has(input:checked) { border-color: var(--pink); background: var(--surface-pink); }
+    .tier-card input { accent-color: var(--pink); }
+    .tier-card strong { display: block; margin: 7px 0 3px; font-size: .85rem; }
+    .tier-card small { color: var(--muted); font-size: .72rem; line-height: 1.4; }
+    .ai-result { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; padding: 15px; border: 1px solid color-mix(in srgb, var(--green) 25%, var(--line)); border-radius: 10px; background: color-mix(in srgb, var(--green) 6%, var(--surface)); }
+    .ai-result div { display: grid; gap: 3px; }
+    .ai-result small { color: var(--muted); font-size: .68rem; }
+    .ai-result strong { font-size: .8rem; }
+    .event-card { display: grid; grid-template-columns: 130px 1fr auto; align-items: center; gap: 15px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .event-card img { width: 130px; height: 100px; object-fit: cover; border-radius: 8px; }
+    .event-card h3 { margin: 5px 0; font-size: .95rem; }
+    .event-card p { margin: 5px 0; color: var(--muted); font-size: .77rem; }
+    .event-card-actions { display: flex; flex-direction: column; gap: 7px; }
+    .event-ai-panel { margin-bottom: 30px; }
+    .event-ai-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+    .event-ai-heading h2 { margin: 4px 0 0; font-size: 1.15rem; }
+    .event-ai-form { display: grid; grid-template-columns: minmax(190px, 1.5fr) minmax(130px, .8fr) minmax(145px, .8fr) auto; align-items: end; gap: 11px; }
+    .event-ai-form .field { margin: 0; }
+    .event-ai-actions { display: grid; gap: 5px; }
+    .event-ai-prompts { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .chip-button { padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: var(--surface); font-size: .75rem; font-weight: 700; cursor: pointer; }
+    .chip-button:hover { border-color: var(--pink); color: var(--pink-deep); background: var(--surface-pink); }
+    .event-ai-note { margin: 12px 0 0; }
+    .event-ai-match { display: grid; gap: 3px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--line); }
+    .event-ai-match strong { color: var(--pink-deep); font-size: .72rem; }
+    .event-ai-match small { color: var(--muted); font-size: .7rem; }
+
+    .admin-shell { display: grid; grid-template-columns: 235px minmax(0, 1fr); min-height: calc(100vh - 76px); }
+    .admin-sidebar { padding: 24px 15px; border-right: 1px solid var(--line); background: var(--surface); }
+    .admin-label { padding: 6px 12px 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: .66rem; font-weight: 800; }
+    .admin-nav { display: grid; gap: 4px; }
+    .admin-nav a { display: flex; align-items: center; gap: 10px; padding: 11px 12px; color: var(--muted); border-radius: 9px; font-size: .83rem; font-weight: 700; }
+    .admin-nav a:hover, .admin-nav a.active { color: var(--pink-deep); background: var(--surface-pink); }
+    .admin-content { min-width: 0; padding: 32px clamp(20px, 4vw, 48px); }
+    .admin-content-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 24px; }
+    .admin-content-header h1 { margin: 0; font-size: 1.65rem; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
+    .stat-card { padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .stat-card-top { display: flex; justify-content: space-between; gap: 9px; color: var(--muted); font-size: .75rem; }
+    .stat-icon { width: 34px; height: 34px; display: grid; place-items: center; color: var(--pink-deep); border-radius: 10px; background: var(--surface-pink); }
+    .stat-card strong { display: block; margin-top: 12px; font: 700 1.6rem 'Space Grotesk', sans-serif; }
+    .stat-change { color: var(--green); font-size: .68rem; }
+    .admin-two-col { display: grid; grid-template-columns: 1.15fr .85fr; gap: 15px; margin-top: 17px; }
+    .table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .78rem; }
+    .data-table th { padding: 10px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+    .data-table td { padding: 12px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .admin-list { display: grid; gap: 10px; }
+    .admin-item { display: flex; align-items: center; gap: 11px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .admin-item img { width: 46px; height: 50px; object-fit: cover; border-radius: 7px; }
+    .admin-item-main { flex: 1; min-width: 0; }
+    .admin-item-main strong { display: block; overflow: hidden; text-overflow: ellipsis; font-size: .82rem; }
+    .admin-item-main small { color: var(--muted); font-size: .7rem; }
+    .admin-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+    .admin-toolbar .input { max-width: 280px; }
+    .qr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .qr-card { display: flex; flex-direction: column; align-items: flex-start; }
+    .qr-card h2 { margin: 14px 0 0; font-size: 1.15rem; }
+    .qr-card canvas { width: 190px; height: 190px; align-self: center; padding: 10px; margin: 15px auto; border: 1px solid var(--line); border-radius: 9px; background: white; image-rendering: pixelated; }
+    .qr-url { overflow-wrap: anywhere; }
+    .ai-pairing-preview { display: grid; gap: 5px; padding: 10px; margin-top: 10px; color: var(--text); border-radius: 9px; background: var(--surface-pink); font-size: .74rem; }
+    .ai-pairing-preview strong { color: var(--pink-deep); }
+    .inventory-row { display: grid; grid-template-columns: 62px minmax(120px, 1fr) repeat(3, minmax(75px, auto)) auto; align-items: center; gap: 13px; padding: 12px; border-bottom: 1px solid var(--line); }
+    .inventory-row img { width: 62px; height: 68px; object-fit: cover; border-radius: 7px; }
+    .inventory-row strong { display: block; font-size: .8rem; }
+    .inventory-row small { color: var(--muted); font-size: .7rem; }
+    .inventory-header { color: var(--muted); text-transform: uppercase; font-size: .66rem; font-weight: 800; }
+    .order-admin-card { display: grid; grid-template-columns: 82px 1fr auto; gap: 15px; align-items: center; padding: 15px; margin-bottom: 11px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); }
+    .order-admin-card img { width: 82px; height: 85px; object-fit: cover; border-radius: 8px; }
+    .order-admin-card h3 { margin: 0 0 5px; font-size: .9rem; }
+    .order-admin-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .upload-preview { max-width: 220px; max-height: 200px; object-fit: cover; border-radius: 8px; }
+    
+    .chat-widget { position: fixed; z-index: 60; right: 20px; bottom: 20px; }
+    .chat-launcher { width: 52px; height: 52px; border-radius: 50%; background: var(--pink); color: white; display: grid; place-items: center; border: 0; box-shadow: var(--shadow); cursor: pointer; }
+    .chat-launcher span:last-child { display: none; }
+    .chat-widget.chat-open .chat-launcher { width: auto; height: auto; border-radius: 99px; padding: 10px 16px; font-size: .84rem; font-weight: 700; gap: 8px; display: inline-flex; }
+    .chat-widget.chat-open .chat-launcher span:last-child { display: inline; }
+    .chat-panel { position: absolute; bottom: 64px; right: 0; width: min(360px, calc(100vw - 32px)); height: 460px; display: grid; grid-template-rows: auto 1fr auto; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+    .chat-panel header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--surface-soft); }
+    .chat-panel header strong { font-size: .88rem; }
+    .chat-panel header small { display: block; color: var(--muted); font-size: .68rem; }
+    .chat-messages { overflow-y: auto; padding: 14px; display: grid; gap: 10px; align-content: start; }
+    .chat-message { max-width: 82%; padding: 10px 12px; border-radius: 12px; font-size: .8rem; line-height: 1.5; }
+    .chat-message.bot { justify-self: start; background: var(--surface-soft); color: var(--text); border-top-left-radius: 3px; }
+    .chat-message.user { justify-self: end; background: var(--pink); color: white; border-top-right-radius: 3px; }
+    #chat-form { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 10px; border-top: 1px solid var(--line); background: var(--surface); }
+    #chat-form input { height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--page); color: var(--text); font-size: .8rem; }
+
+    .toast { position: fixed; z-index: 50; right: 22px; bottom: 22px; max-width: min(380px, calc(100vw - 32px)); padding: 14px 18px; color: white; border-radius: 10px; background: #28212d; box-shadow: var(--shadow); font-size: .83rem; animation: toast-in .2s ease both; }
+    .modal-backdrop { position: fixed; z-index: 40; inset: 0; display: grid; place-items: center; padding: 20px; background: rgb(17 12 20 / 58%); backdrop-filter: blur(5px); }
+    .modal-panel { width: min(620px, 100%); max-height: min(90vh, 850px); overflow-y: auto; box-shadow: var(--shadow); }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal { animation: reveal-in .42s ease both; }
+    @keyframes reveal-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1020px) {
+        .display { font-size: 3.2rem; }
+        .page-title { font-size: 2.35rem; }
+        .main-nav { justify-content: start; overflow-x: auto; }
+        .nav-link { flex: none; }
+        .header-main { gap: 15px; }
+        .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .inventory-row { grid-template-columns: 55px minmax(120px, 1fr) repeat(2, minmax(70px, auto)) auto; }
+        .inventory-row > :nth-child(4) { display: none; }
+    }
+
+    @media (max-width: 740px) {
+        .container { width: min(100% - 32px, 600px); }
+        .header-main { min-height: 66px; flex-wrap: wrap; gap: 0; padding-block: 9px; }
+        .brand-mark { width: 36px; height: 36px; }
+        .brand-name { font-size: 1rem; }
+        .header-actions { margin-left: auto; }
+        .mobile-menu { display: inline-flex; }
+        .header-actions .button-primary { display: none; }
+        .main-nav { display: none; order: 4; width: 100%; flex-basis: 100%; justify-content: start; padding: 8px 0 1px; }
+        .main-nav.menu-open { display: flex; }
+        .nav-link { padding: 8px 10px; font-size: .75rem; }
+        .home-hero { min-height: 510px; }
+        .hero-content { width: min(100% - 32px, 600px); padding: 62px 0 90px; }
+        .display { font-size: 2.45rem; }
+        .page-title { font-size: 2rem; }
+        .detail-content h1 { font-size: 2rem; }
+        .organizer-hero h1 { font-size: 2rem; }
+        .hero-content p { font-size: .94rem; }
+        .hero-meta { gap: 17px; margin-top: 30px; }
+        .search-panel { width: min(100% - 32px, 600px); grid-template-columns: 1fr 1fr; margin-top: -45px; }
+        .search-control { border-right: 0; }
+        .search-control:first-child { grid-column: 1 / -1; border-bottom: 1px solid var(--line); }
+        .search-panel .button { grid-column: 1 / -1; }
+        .section-heading { align-items: start; margin-top: 40px; }
+        .category-row { grid-template-columns: repeat(3, 1fr); gap: 9px; }
+        .category-tile { min-height: 100px; font-size: .72rem; }
+        .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .product-info { padding: 11px; }
+        .product-name { font-size: .86rem; }
+        .product-price { font-size: .86rem; }
+        .product-card .button { padding: 8px 9px; font-size: .72rem; }
+        .steps-grid { grid-template-columns: repeat(2, 1fr); gap: 22px 15px; }
+        .event-strip { grid-template-columns: 1fr; }
+        .event-art { min-height: 190px; }
+        .event-copy { padding: 25px; }
+        .footer-grid { grid-template-columns: 1fr 1fr; gap: 25px 15px; }
+        .footer-bottom { flex-direction: column; }
+        .page-wrap { padding-top: 27px; }
+        .page-intro { align-items: start; flex-direction: column; }
+        .catalog-layout { grid-template-columns: 1fr; }
+        .filter-panel { position: static; }
+        .filter-panel.collapsed .filter-body { display: none; }
+        .detail-layout { grid-template-columns: 1fr; gap: 22px; }
+        .detail-content { position: static; }
+        .detail-main-image { aspect-ratio: 1 / .92; }
+        .rules-grid { grid-template-columns: 1fr; }
+        .rules-nav { position: static; display: flex; overflow-x: auto; }
+        .rules-nav a { flex: none; }
+        .checkout-layout { grid-template-columns: 1fr; }
+        .sticky-summary { position: static; order: -1; }
+        .form-grid { grid-template-columns: 1fr; }
+        .span-2 { grid-column: auto; }
+        .order-card { grid-template-columns: 68px 1fr; gap: 12px; padding: 12px; }
+        .order-card img { width: 68px; height: 76px; }
+        .order-card > .button { grid-column: 1 / -1; }
+        .auth-layout { grid-template-columns: 1fr; }
+        .auth-art { min-height: 240px; padding: 22px; }
+        .auth-art-content h2 { font-size: 1.5rem; }
+        .auth-form-wrap { padding: 27px 22px; }
+        .organizer-hero { grid-template-columns: 1fr; min-height: 0; padding: 25px; }
+        .organizer-hero-art { min-height: 180px; }
+        .organizer-grid { grid-template-columns: 1fr; }
+        .qr-grid { grid-template-columns: 1fr; }
+        .event-card { grid-template-columns: 84px 1fr; }
+        .event-card img { width: 84px; height: 88px; }
+        .event-card-actions { grid-column: 1 / -1; flex-direction: row; }
+        .event-ai-heading { align-items: start; flex-direction: column; }
+        .event-ai-form { grid-template-columns: 1fr; }
+        .event-ai-actions { grid-template-columns: 1fr auto; align-items: center; }
+        .admin-shell { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+        .admin-sidebar { position: sticky; top: 64px; z-index: 10; width: 100%; min-width: 0; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--line); }
+        .admin-label { display: none; }
+        .admin-nav { display: flex; min-width: 0; max-width: 100%; overflow-x: auto; }
+        .admin-nav a { flex: none; padding: 9px; font-size: .73rem; }
+        .admin-nav a .material-symbols-outlined { font-size: 17px; }
+        .admin-sidebar .notice { max-width: 100%; overflow-wrap: anywhere; }
+        .admin-content { min-width: 0; padding: 24px 16px 40px; }
+        .admin-content-header { flex-wrap: wrap; }
+        .admin-two-col { grid-template-columns: 1fr; }
+        .inventory-row { grid-template-columns: 46px minmax(100px, 1fr) auto; gap: 9px; }
+        .inventory-row > :nth-child(3), .inventory-row > :nth-child(4), .inventory-row > :nth-child(5) { display: none; }
+        .inventory-row img { width: 46px; height: 52px; }
+        .order-admin-card { grid-template-columns: 62px 1fr; gap: 10px; }
+        .order-admin-card img { width: 62px; height: 68px; }
+        .order-admin-actions { grid-column: 1 / -1; }
+        .success-panel { padding: 25px 17px; }
+    }
+</style>
+ const defaultAccounts = [
+        { email: 'barbarapavin3099@gmail.com', password: '12345678', name: 'Barbara Pavin', role: 'customer' },
+        { email: 'adminrental123@gmail.com', password: '12345678910', name: 'Admin Rental', role: 'admin' },
+    ];
+
+    const seedProducts = [
+        { id: 'c1', name: 'Raiden Shogun', series: 'Genshin Impact', origin: 'Inazuma', category: 'Game', size: ['S', 'M', 'L'], price: 175000, deposit: 87500, stock: 3, rating: 4.9, reviews: 28, tag: 'Terlaris', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cosplay_of_Raiden_Shogun_DSCF1208.jpg/900px-Cosplay_of_Raiden_Shogun_DSCF1208.jpg', imageCredit: 'kxz Chen', imageLicense: 'CC BY-SA 2.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Cosplay_of_Raiden_Shogun_DSCF1208.jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/2.0/', description: 'Cosplay Raiden Shogun dengan palet ungu Inazuma, obi merah, dan detail motif Electro.', accessories: ['Wig ungu', 'Obi dan aksesori rambut', 'Prop pedang foam'], themes: ['game', 'genshin', 'inazuma', 'electro', 'purple'] },
+        { id: 'c2', name: 'Kamado Nezuko', series: 'Demon Slayer: Kimetsu no Yaiba', origin: 'Kimetsu no Yaiba', category: 'Anime', size: ['S', 'M'], price: 120000, deposit: 60000, stock: 4, rating: 4.9, reviews: 34, tag: 'Favorit komunitas', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg/900px-Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg', imageCredit: 'Kiri Karma / Miguel Discart', imageLicense: 'CC BY-SA 2.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_(52111635324).jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/2.0/', description: 'Cosplay kimono Nezuko dengan haori gelap, obi merah muda, dan bambu prop.', accessories: ['Haori hitam', 'Obi merah muda', 'Bambu prop'], themes: ['anime', 'kimono', 'japan', 'demon', 'pink'] },
+        { id: 'c3', name: 'Gojo Satoru', series: 'Jujutsu Kaisen', origin: 'Jujutsu High', category: 'Anime', size: ['M', 'L', 'XL'], price: 150000, deposit: 75000, stock: 2, rating: 4.8, reviews: 19, tag: 'Pilihan editor', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Satoru_Goj%C5%8D_cosplay.jpg/720px-Satoru_Goj%C5%8D_cosplay.jpg', imageCredit: 'Solomon203', imageLicense: 'CC BY-SA 4.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Satoru_Goj%C5%8D_cosplay.jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', description: 'Seragam hitam Gojo dengan blindfold dan rambut putih khas penyihir Jujutsu High.', accessories: ['Blindfold hitam', 'Wig putih', 'Jubah seragam'], themes: ['anime', 'jujutsu', 'sorcerer', 'white hair', 'blindfold'] },
+        { id: 'c4', name: 'Hatsune Miku', series: 'Vocaloid', origin: 'Piapro', category: 'Anime', size: ['S', 'M'], price: 135000, deposit: 67500, stock: 3, rating: 4.9, reviews: 22, tag: 'Idol virtual', image: 'https://images.unsplash.com/photo-1722608577993-b8db8a9ce5cf?auto=format&fit=crop&w=900&q=85', imageCredit: 'Adrian Henry / Unsplash', imageLicense: 'Unsplash License', imageCreditUrl: 'https://unsplash.com/photos/a-woman-with-long-blue-hair-wearing-a-mask-01xCwqmzvHo', imageLicenseUrl: 'https://unsplash.com/license', description: 'Cosplay idol virtual dengan wig twin-tail biru toska, dasi dan aksen futuristik.', accessories: ['Wig twin-tail toska', 'Headset Miku', 'Dasi dan arm warmer'], themes: ['vocaloid', 'idol', 'blue hair', 'music', 'virtual'] },
+        { id: 'c5', name: 'Anya Forger', series: 'Spy x Family', origin: 'Eden Academy', category: 'Anime', size: ['XS', 'S'], price: 100000, deposit: 50000, stock: 2, rating: 4.8, reviews: 17, tag: 'Baru', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Anya_forger_cosplay_at_Nippon_Haku_002.jpg/720px-Anya_forger_cosplay_at_Nippon_Haku_002.jpg', imageCredit: 'Pescov', imageLicense: 'CC0 1.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Anya_forger_cosplay_at_Nippon_Haku_002.jpg', imageLicenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/', description: 'Seragam Eden Academy dengan wig merah muda, aksesori tanduk hitam, dan tas sekolah.', accessories: ['Wig merah muda', 'Aksesori tanduk', 'Tas sekolah Eden'], themes: ['spy x family', 'anya', 'school', 'pink hair', 'eden'] },
+        { id: 'c6', name: 'Alhaitham', series: 'Genshin Impact', origin: 'Sumeru', category: 'Game', size: ['M', 'L', 'XL'], price: 160000, deposit: 80000, stock: 1, rating: 4.8, reviews: 14, tag: 'Premium', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Cosplay_Alhaitham_in_Hoyoland_2025_1.jpg/900px-Cosplay_Alhaitham_in_Hoyoland_2025_1.jpg', imageCredit: 'Twotwo2019', imageLicense: 'CC BY-SA 4.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Cosplay_Alhaitham_in_Hoyoland_2025_1.jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', description: 'Cosplay cendekiawan Sumeru dengan wig hijau, mantel putih-hijau, dan aksesori Akademiya.', accessories: ['Wig hijau', 'Mantel Akademiya', 'Aksesori bahu'], themes: ['game', 'genshin', 'sumeru', 'green hair', 'scholar'] },
+    ];
+
+    const seedEvents = [
+        { id: 'e1', title: 'Jakarta Cosplay Parade 2026', date: '21 November 2026', location: 'M Bloc Space, Jakarta', theme: 'anime fantasy parade', category: 'Komunitas', tier: 'Gratis', status: 'Disetujui', image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=900&q=85', description: 'Parade kostum dan panggung komunitas untuk semua fandom. Ada mini competition dan photo walk.', featured: true },
+        { id: 'e2', title: 'Nusantara Pop Culture Fest', date: '5 Desember 2026', location: 'JCC Senayan, Jakarta', theme: 'game fantasy pop culture', category: 'Unggulan', tier: 'Prabayar', status: 'Disetujui', image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=900&q=85', description: 'Festival pop culture, cosplay showcase, artist alley, dan meet-and-greet bersama kreator.', featured: true },
+        { id: 'e3', title: 'Malam Yokai: Cosplay Photo Walk', date: '12 Desember 2026', location: 'Kota Tua, Jakarta', theme: 'japan kimono yokai', category: 'Komunitas', tier: 'Gratis', status: 'Disetujui', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=85', description: 'Jelajah malam bertema folklore Jepang dengan sesi foto bersama komunitas.', featured: false },
+    ];
+
+    const categories = [
+        { name: 'Anime', icon: 'auto_awesome' },
+        { name: 'Game', icon: 'sports_esports' },
+        { name: 'Film & Serial', icon: 'movie' },
+        { name: 'Komik', icon: 'menu_book' },
+        { name: 'Fantasy', icon: 'flare' },
+        { name: 'Aksesori', icon: 'diamond' },
+    ];
+
+    const orderStages = [
+        'Pesanan Dibuat', 'Pembayaran Diverifikasi', 'Diproses', 'Dikirim JNE',
+        'Dalam Perjalanan', 'Diterima', 'Masa Sewa', 'Dikembalikan / Selesai',
+    ];
+
+    const toDateValue = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(`${value}T00:00:00`)) : 'Belum ditentukan';
+
+    const readStorage = (key, fallback) => {
         try {
-            const savedTheme = localStorage.getItem('letscosplay-theme');
-            if (savedTheme === 'light' || savedTheme === 'dark') {
-                document.documentElement.dataset.theme = savedTheme;
-                document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-            }
-        } catch {}
-    </script>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
-    <style>
-        :root {
-            color-scheme: dark;
-            --page-bg: #17131B;
-            --surface-bg: #1F1A24;
-            --inset-bg: #120F15;
-            --border-color: #322B3D;
-            --text-primary: #F6F6F8;
-            --text-secondary: #D1D5DB;
-            --text-muted: #9CA3AF;
-            --hero-start: rgb(59 7 100 / 60%);
-            --hero-end: #1F1A24;
-        }
-        html[data-theme="light"] {
-            color-scheme: light;
-            --page-bg: #F7F4F7;
-            --surface-bg: #FFFFFF;
-            --inset-bg: #F1EDF2;
-            --border-color: #E1D9E4;
-            --text-primary: #281F2C;
-            --text-secondary: #514758;
-            --text-muted: #716879;
-            --hero-start: #F9E4EF;
-            --hero-end: #FFF9FC;
-        }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--page-bg);
-            color: var(--text-primary);
-            transition: background-color 180ms ease, color 180ms ease;
-        }
-        .theme-header { background-color: color-mix(in srgb, var(--page-bg) 92%, transparent); }
-        .theme-surface { background-color: var(--surface-bg); }
-        .theme-inset { background-color: var(--inset-bg); }
-        .theme-border { border-color: var(--border-color); }
-        .theme-hero { background-image: linear-gradient(to right, var(--hero-start), var(--hero-end)); }
-        .theme-copy-primary { color: var(--text-primary); }
-        .theme-input { color: var(--text-primary); }
-        .theme-input::placeholder { color: var(--text-muted); }
-        .tab-inactive { background-color: rgb(255 255 255 / 5%); color: #D1D5DB; }
-        html[data-theme="light"] .tab-inactive { background-color: #EEE9F0; color: #514758; }
-        .theme-toggle {
-            width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
-            border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary);
-            background-color: var(--surface-bg); transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
-        }
-        .theme-toggle:hover { background-color: var(--inset-bg); }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col selection:bg-[#F45193] selection:text-white">
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : fallback;
+        } catch { return fallback; }
+    };
 
-    <!-- Top Banner -->
-    <div class="bg-[#F45193] text-white text-xs font-bold py-1.5 px-4 text-center tracking-wide flex items-center justify-center gap-2 shadow-md">
-        <span class="material-symbols-outlined text-[16px]">bolt</span>
-        <span>✨ LET'SCOSPLAY — INTERACTIVE PROTOTYPE & AI EVENT HUB ✨</span>
-    </div>
+    const writeStorage = (key, value) => {
+        try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+    };
 
-    <!-- Header -->
-    <header class="theme-header border-b theme-border sticky top-0 z-40 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-6 min-h-20 py-3 flex items-center justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#F45193] flex items-center justify-center text-white font-black text-lg">LC</div>
-                <h1 class="text-xl font-extrabold tracking-tight">Let's<span class="text-[#F45193]">Cosplay</span></h1>
-            </div>
-            <nav class="flex gap-2 items-center flex-wrap justify-end">
-                <button onclick="switchTab('admin')" id="btn-admin" class="px-4 py-2 rounded-xl bg-[#F45193] text-white font-bold text-xs shadow">Dashboard Admin QR</button>
-                <button onclick="switchTab('upload')" id="btn-upload" class="tab-inactive px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/10">Portal Upload Organizer</button>
-                <button onclick="switchTab('hub')" id="btn-hub" class="tab-inactive px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/10">Telusuri AI Hub (Publik)</button>
-                <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Ganti tema">
-                    <span id="theme-toggle-icon" class="material-symbols-outlined">light_mode</span>
-                </button>
-            </nav>
-        </div>
-    </header>
+    const loadAccounts = () => {
+        const accounts = readStorage(STORAGE_KEYS.accounts, []);
+        for (const account of defaultAccounts) {
+            if (!accounts.some((saved) => saved.email.toLowerCase() === account.email)) accounts.push(account);
+        }
+        writeStorage(STORAGE_KEYS.accounts, accounts);
+        return accounts;
+    };
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full space-y-8">
-        
-        <!-- Tab 1: Admin Dashboard -->
-        <div id="tab-admin" class="space-y-6">
-            <div class="theme-hero border theme-border p-8 rounded-3xl space-y-4">
-                <h2 class="theme-copy-primary text-3xl font-extrabold">Pusat Generator QR Code & Otomasi Iklan</h2>
-                <p class="text-sm text-gray-300 max-w-2xl">Bagikan QR Code / link portal ke penyelenggara event agar mereka dapat mengunggah poster secara mandiri.</p>
-                <button onclick="copyPortalLink()" class="px-5 py-3 rounded-xl bg-[#F45193] text-white text-xs font-extrabold shadow-lg">Salin Link Portal Organizer</button>
-            </div>
+    const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[char]));
 
-            <div class="theme-surface border theme-border p-6 rounded-3xl space-y-4">
-                <h3 class="theme-copy-primary font-bold text-lg">Daftar Event Terverifikasi</h3>
-                <div class="space-y-3" id="events-list-container">
-                    <!-- Dummy item fungsional -->
-                    <div class="theme-inset border theme-border p-4 rounded-2xl flex justify-between items-center">
-                        <div>
-                            <div class="theme-copy-primary font-bold text-sm">Cosplay Matsuri Palembang 2026</div>
-                            <div class="text-xs text-gray-400 mt-0.5">15 November 2026 • PTC Mall Palembang <span class="text-[#F45193]">(Paid Promotion)</span></div>
-                        </div>
-                        <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-xl text-xs font-bold">Aktif</span>
-                    </div>
+    const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+    const icon = (name, extra = '') => `<span class="material-symbols-outlined ${extra}" aria-hidden="true">${name}</span>`;
+    const photoCreditMarkup = (product) => product.imageCredit ? `<small class="photo-credit">Foto: <a href="${escapeHtml(product.imageCreditUrl)}" target="_blank" rel="noreferrer">${escapeHtml(product.imageCredit)}</a> · <a href="${escapeHtml(product.imageLicenseUrl)}" target="_blank" rel="noreferrer">${escapeHtml(product.imageLicense)}</a></small>` : '';
+
+    const compressImage = (file) => new Promise((resolve) => {
+        if (!file) { resolve(seedEvents[0].image); return; }
+        const source = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+            const scale = Math.min(1, 900 / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(image.naturalWidth * scale);
+            canvas.height = Math.round(image.naturalHeight * scale);
+            canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(source);
+            try { resolve(canvas.toDataURL('image/jpeg', 0.72)); } catch { resolve(seedEvents[0].image); }
+        };
+        image.onerror = () => { URL.revokeObjectURL(source); resolve(seedEvents[0].image); };
+        image.src = source;
+    });
+
+    const app = document.querySelector('#app');
+    const state = {
+        page: 'home',
+        param: null,
+        productId: 'c1',
+        size: 'M',
+        days: 3,
+        rentalDate: toDateValue(new Date(Date.now() + 86400000)),
+        addons: [],
+        category: '',
+        search: '',
+        sort: 'popular',
+        maxPrice: 200000,
+        sizeFilters: [],
+        onlyAvailable: true,
+        catalogPage: 1,
+        orderFilter: 'Semua',
+        adminSection: 'overview',
+        trustScore: 55,
+        accounts: loadAccounts(),
+        session: readStorage(STORAGE_KEYS.session, null),
+        inventory: readStorage(STORAGE_KEYS.inventory, seedProducts),
+        orders: readStorage(STORAGE_KEYS.orders, []),
+        events: readStorage(STORAGE_KEYS.events, seedEvents),
+        eventSearch: { query: '', location: '', tier: '', active: false },
+        modal: null,
+        chatOpen: false,
+        chatMessages: [],
+    };
+
+    const productById = (id) => state.inventory.find((product) => product.id === id) || state.inventory[0];
+    const depositForProduct = (product) => Math.ceil(product.deposit * (state.trustScore >= 85 ? 0.5 : 1));
+
+    const navigate = (page, param = null) => {
+        if (state.session?.role === 'admin' && page !== 'admin') { page = 'admin'; param = state.adminSection; }
+        if (state.session?.role === 'customer' && page === 'admin') { page = 'home'; param = null; }
+        if (['checkout', 'orders', 'tracking'].includes(page) && state.session?.role !== 'customer') { page = 'login'; param = null; }
+        state.page = page;
+        state.param = param;
+        state.modal = null;
+        const hash = `#${page}${param ? `/${encodeURIComponent(param)}` : ''}`;
+        history.pushState({ page, param }, '', hash);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        render();
+    };
+
+    const theme = () => document.documentElement.dataset.theme || 'light';
+    const toggleTheme = () => {
+        const next = theme() === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem(STORAGE_KEYS.theme, next); } catch {}
+        render();
+    };
+
+    const showToast = (message) => {
+        document.querySelector('.toast')?.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.setAttribute('role', 'status');
+        toast.textContent = message;
+        document.body.append(toast);
+        window.setTimeout(() => toast.remove(), 3200);
+    };
+
+    const topHeader = () => {
+        const adminView = state.session?.role === 'admin';
+        const customerView = state.session?.role === 'customer';
+        const links = adminView
+            ? [['overview', 'Dashboard Admin'], ['inventory', 'Kelola Katalog'], ['orders', 'Verifikasi Pesanan'], ['events', 'Kurasi Event'], ['qr', 'Generator QR']].map(([section, label]) => `<a href="#admin/${section}" data-admin-section="${section}" class="nav-link ${state.adminSection === section ? 'active' : ''}">${label}</a>`).join('')
+            : [['home', 'Beranda'], ['catalog', 'Katalog Kostum'], ['rules', 'Rules Rental'], ['howto', 'Cara Sewa'], ...(customerView ? [['orders', 'Pesanan Saya']] : []), ['events', 'Telusuri Event AI']].map(([page, label]) => `<a href="#${page}" data-go="${page}" class="nav-link ${state.page === page || (state.page === 'detail' && page === 'catalog') ? 'active' : ''}">${label}</a>`).join('');
+        return `
+        <header class="site-header">
+            <div class="container header-main">
+                <a class="brand" href="${adminView ? '#admin' : '#home'}" data-go="${adminView ? 'admin' : 'home'}"><span class="brand-mark">LC</span><span class="brand-name">Let's<span>Cosplay</span></span></a>
+                <nav class="main-nav">${links}</nav>
+                <div class="header-actions">
+                    <button class="icon-button" type="button" data-action="theme" aria-label="Ganti tema">${icon(theme() === 'dark' ? 'light_mode' : 'dark_mode')}</button>
+                    ${state.session ? `<span class="muted small">${escapeHtml(state.session.name)}</span><button class="button button-secondary button-small" type="button" data-action="logout">Keluar</button>` : `<button class="button button-secondary button-small" type="button" data-go="login">Masuk</button><button class="button button-primary button-small" type="button" data-go="register">Daftar</button>`}
+                    <button class="icon-button mobile-menu" type="button" data-action="menu" aria-label="Menu">${icon('menu')}</button>
                 </div>
             </div>
-        </div>
+        </header>`;
+    };
 
-        <!-- Tab 2: Organizer Portal Upload -->
-        <div id="tab-upload" class="hidden space-y-6">
-            <div class="theme-surface border theme-border max-w-xl mx-auto p-8 rounded-3xl space-y-6 shadow-2xl">
-                <h2 class="theme-copy-primary text-2xl font-extrabold text-center">Portal Upload Mandiri Organizer</h2>
-                <form id="organizer-form" onsubmit="submitOrganizerEvent(event)" class="space-y-4">
-                    <div>
-                        <label class="text-xs font-bold text-gray-300">Judul Event</label>
-                        <input type="text" id="org-title" required placeholder="Contoh: Palembang Anime Fest" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-300">Tanggal Pelaksanaan</label>
-                        <input type="text" id="org-date" required placeholder="Contoh: 20 Desember 2026" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-300">Lokasi / Venue</label>
-                        <input type="text" id="org-location" required placeholder="Contoh: Opi Mall Palembang" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-300">Kategori Iklan</label>
-                        <select id="org-category" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
-                            <option value="Paid Promotion">Paid Promotion (Featured)</option>
-                            <option value="Community Partner">Community Partner (Gratis)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="w-full py-3.5 rounded-xl bg-[#F45193] text-white font-extrabold text-sm shadow-lg">Kirim ke Sistem</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Tab 3: Public AI Hub -->
-        <div id="tab-hub" class="hidden space-y-6">
-            <h2 class="theme-copy-primary text-2xl font-extrabold">Telusuri Event Bersama AI (Publik)</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="theme-surface border theme-border p-6 rounded-3xl space-y-3 shadow-xl">
-                    <span class="px-3 py-1 rounded-full bg-[#F45193] text-white text-[10px] font-extrabold">Paid Promotion</span>
-                    <h3 class="theme-copy-primary font-extrabold text-lg">Cosplay Matsuri Palembang 2026</h3>
-                    <p class="text-xs text-gray-400">15 November 2026 • PTC Mall Palembang</p>
-                    <p class="text-xs text-gray-300">Event jejepangan terbesar di Sumatera Selatan dengan berbagai lomba cosplay menarik.</p>
+    const footer = () => `
+        <footer class="site-footer">
+            <div class="container">
+                <div class="footer-grid">
+                    <div><a class="brand" href="#home" data-go="home"><span class="brand-mark">LC</span><span class="brand-name">Let's<span>Cosplay</span></span></a><p class="footer-note">Temukan karakter favoritmu. Kami siapkan kostum, kamu ciptakan ceritanya.</p></div>
+                    <div><h4>Jelajahi</h4><div class="footer-links"><a href="#catalog" data-go="catalog">Katalog kostum</a><a href="#events" data-go="events">Event cosplay</a><a href="#rules" data-go="rules">Aturan rental</a></div></div>
+                    <div><h4>Bantuan</h4><div class="footer-links">${state.session?.role === 'customer' ? '<a href="#orders" data-go="orders">Pesanan saya</a>' : ''}<a href="#login" data-go="login">Masuk akun</a><a href="#organizer" data-go="organizer">Pasang iklan event</a></div></div>
+                    <div><h4>Jam layanan</h4><div class="footer-links"><span>Senin–Sabtu</span><span>09.00–18.00 WIB</span><span>Jakarta, Indonesia</span></div></div>
                 </div>
+                <div class="footer-bottom"><span>© 2026 Let'sCosplay. Single-file deployment for Academic Presentation.</span><span>Data tersimpan lokal di browser.</span></div>
             </div>
-        </div>
+        </footer>`;
 
-    </main>
+    const productCard = (product) => `
+        <article class="product-card reveal">
+            <div class="product-photo">
+                <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy">
+                ${product.tag ? `<span class="product-tag">${escapeHtml(product.tag)}</span>` : ''}
+                <button type="button" class="favorite-button" data-action="favorite" aria-label="Simpan">${icon('favorite')}</button>
+            </div>
+            <div class="product-info">
+                <div class="product-meta"><span>${escapeHtml(product.category)} · ${escapeHtml(product.series)}</span><span class="availability">${product.stock > 0 ? 'Tersedia' : 'Disewa'}</span></div>
+                <h3 class="product-name">${escapeHtml(product.name)}</h3>
+                <div class="card-bottom"><div><div class="product-price">${money(product.price)} <small>/ hari</small></div><div class="rating">${icon('star')} ${product.rating} <span class="muted small">(${product.reviews})</span></div></div><button class="button button-soft button-small" type="button" data-go="detail" data-id="${escapeHtml(product.id)}">Detail</button></div>
+                ${photoCreditMarkup(product)}
+            </div>
+        </article>`;
 
-    <!-- Script Interaksi -->
-    <script>
-        function switchTab(tab) {
-            ['admin', 'upload', 'hub'].forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('btn-' + t).className = "tab-inactive px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/10";
-            });
-            document.getElementById('tab-' + tab).classList.remove('hidden');
-            document.getElementById('btn-' + tab).className = "px-4 py-2 rounded-xl bg-[#F45193] text-white font-bold text-xs shadow";
-        }
+    const eventCard = (event, compact = false, aiMatch = null) => `
+        <article class="event-card reveal">
+            <img src="${escapeHtml(event.image)}" alt="${escapeHtml(event.title)}" loading="lazy">
+            <div><div class="product-meta"><span>${escapeHtml(event.category)}</span><span>${escapeHtml(event.tier)}${event.featured ? ' · Unggulan' : ''}</span></div><h3>${escapeHtml(event.title)}</h3><p>${icon('calendar_month')} ${escapeHtml(event.date)} · ${escapeHtml(event.location)}</p>${compact ? '' : `<p>${escapeHtml(event.description)}</p>`}${aiMatch ? `<div class="event-ai-match"><strong>${escapeHtml(aiMatch.reasons.join(' · '))}</strong><small>Kostum: ${escapeHtml(aiMatch.costumes.join(', ') || 'Belum ada pasangan')}</small></div>` : ''}</div>
+            <div class="event-card-actions"><button class="button button-primary button-small" type="button" data-go="event" data-id="${escapeHtml(event.id)}">${compact ? 'Lihat' : 'Kostum cocok'}</button></div>
+        </article>`;
 
-        function setTheme(theme) {
-            document.documentElement.dataset.theme = theme;
-            document.documentElement.classList.toggle('dark', theme === 'dark');
-            try { localStorage.setItem('letscosplay-theme', theme); } catch {}
-            document.getElementById('theme-toggle-icon').textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
-        }
+    const homePage = () => `
+        <section class="home-hero">
+            <img class="hero-image" src="https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=2000&q=88" alt="Hero" fetchpriority="high">
+            <div class="hero-content"><div class="hero-copy reveal"><span class="eyebrow">Sewa kostum. Jadi karakter favoritmu.</span><h1 class="display">Panggung cerita<br>ada di tanganmu.</h1><p>Kostum cosplay terkurasi, siap dikirim ke rumah. Pilih karakter, tentukan tanggal, dan mulai petualanganmu.</p><div class="hero-actions"><button class="button button-primary" data-go="catalog" type="button">Jelajahi kostum ${icon('arrow_forward')}</button><button class="button button-secondary" data-go="events" type="button">Telusuri event bersama AI</button></div><div class="hero-meta"><div><strong>120+</strong>Kostum pilihan</div><div><strong>4,9/5</strong>Rating penyewa</div><div><strong>1.200+</strong>Rental selesai</div></div></div></div>
+        </section>
+        <div class="container"><form class="search-panel" id="home-search"><label class="search-control">${icon('search')}<input name="query" placeholder="Cari karakter atau serial"></label><label class="search-control">${icon('category')}<select name="category"><option value="">Semua kategori</option>${categories.map((c) => `<option>${c.name}</option>`).join('')}</select></label><label class="search-control">${icon('straighten')}<select name="size"><option value="">Semua ukuran</option>${['XS', 'S', 'M', 'L', 'XL'].map((s) => `<option>${s}</option>`).join('')}</select></label><button class="button button-primary" type="submit">Cari</button></form></div>
+        <div class="container content-section">
+            <div class="section-heading"><div><span class="eyebrow">Temukan duniamu</span><h2>Jelajahi kategori</h2></div><button class="button button-quiet" data-go="catalog" type="button">Semua kostum ${icon('arrow_forward')}</button></div>
+            <div class="category-row">${categories.map((c) => `<button class="category-tile" type="button" data-category="${c.name}"><span class="category-icon">${icon(c.icon)}</span>${c.name}</button>`).join('')}</div>
+            <div class="section-heading"><div><span class="eyebrow">Kurasi minggu ini</span><h2>Kostum yang lagi ramai</h2></div><button class="button button-quiet" data-go="catalog" type="button">Lihat katalog ${icon('arrow_forward')}</button></div>
+            <div class="product-grid">${state.inventory.slice(0, 4).map(productCard).join('')}</div>
+            <div class="section-heading"><div><span class="eyebrow">Mudah dari awal</span><h2>Rental dalam empat langkah</h2></div></div>
+            <div class="steps-grid">${[['01', 'Pilih karakter', 'Cari kostum, pilih ukuran, dan tentukan lama sewa.'], ['02', 'Lengkapi data', 'Isi formulir penyewa dan unggah dokumen.'], ['03', 'Bayar DP', 'Amankan pesanan dengan pembayaran minimal 50%.'], ['04', 'Tampil percaya diri', 'Kostum dikirim, lalu kembalikan sesuai jadwal.']].map(([n, title, copy]) => `<article class="step-item"><span class="step-number">${n}</span><h3>${title}</h3><p>${copy}</p></article>`).join('')}</div>
+            <div class="section-heading"><div><span class="eyebrow">Komunitas lebih dekat</span><h2>Event cosplay mendatang</h2></div><button class="button button-quiet" data-go="events" type="button">Semua event ${icon('arrow_forward')}</button></div>
+            <div class="stack">${state.events.filter((e) => e.status === 'Disetujui').slice(0, 2).map((e) => eventCard(e, true)).join('')}</div>
+            <section class="event-strip" style="margin-top:42px"><div class="event-art"></div><div class="event-copy"><span class="eyebrow">Untuk komunitas & organizer</span><h2>Event-mu pantas ditemukan.</h2><p>Promosikan gathering, festival, atau photo walk kepada komunitas cosplay yang tepat.</p><button class="button button-primary" data-go="organizer" type="button">Pasang iklan event ${icon('arrow_forward')}</button></div></section>
+        </div>`;
 
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            const current = document.documentElement.dataset.theme;
-            setTheme(current === 'dark' ? 'light' : 'dark');
+    const catalogPage = () => {
+        const matching = state.inventory.filter((p) => {
+            const query = state.search.toLowerCase();
+            return (!state.category || p.category === state.category || (state.category === 'Fantasy' && p.themes.includes('fantasy')))
+                && (!query || `${p.name} ${p.series} ${p.category}`.toLowerCase().includes(query))
+                && p.price <= state.maxPrice
+                && (!state.sizeFilters.length || state.sizeFilters.some((s) => p.size.includes(s)))
+                && (!state.onlyAvailable || p.stock > 0);
         });
+        const sorted = [...matching].sort((a, b) => state.sort === 'price-low' ? a.price - b.price : state.sort === 'price-high' ? b.price - a.price : b.rating - a.rating);
+        return `<div class="container page-wrap">
+            <div class="breadcrumb"><a data-go="home" href="#home">Beranda</a><span>/</span><span>Katalog kostum</span></div>
+            <div class="page-intro"><div><span class="eyebrow">Temukan karakter favorit</span><h1 class="page-title">Katalog kostum</h1><p>Pilihan kostum terawat untuk convention, pemotretan, dan acara spesialmu.</p></div><button class="button button-secondary" data-go="rules" type="button">${icon('menu_book')} Aturan rental</button></div>
+            <div class="catalog-layout">
+                <aside class="filter-panel" id="filter-panel"><div class="filter-title">Filter kostum <button class="button button-quiet button-small" data-action="reset-filters" type="button">Reset</button></div><div class="filter-body">
+                    <div class="filter-group"><h4>Kategori</h4>${categories.map((c) => `<label class="filter-label"><input type="radio" name="catalog-category" value="${c.name}" ${state.category === c.name ? 'checked' : ''}>${c.name}</label>`).join('')}<label class="filter-label"><input type="radio" name="catalog-category" value="" ${!state.category ? 'checked' : ''}>Semua kategori</label></div>
+                    <div class="filter-group"><h4>Ukuran</h4>${['XS', 'S', 'M', 'L', 'XL'].map((s) => `<label class="filter-label"><input type="checkbox" data-size-filter="${s}" ${state.sizeFilters.includes(s) ? 'checked' : ''}>${s}</label>`).join('')}</div>
+                    <div class="filter-group"><h4>Maks. Harga / hari</h4><div class="filter-range"><input type="range" min="50000" max="200000" step="5000" value="${state.maxPrice}" data-action="price-range"><span class="muted small">Maks. ${money(state.maxPrice)}</span></div></div>
+                    <div class="filter-group"><h4>Ketersediaan</h4><label class="filter-label"><input type="checkbox" data-availability-filter ${state.onlyAvailable ? 'checked' : ''}> Siap disewa</label></div>
+                </div></aside>
+                <section><div class="catalog-toolbar"><span class="muted small">${sorted.length} kostum ditemukan</span><div class="quantity-row"><button class="button button-secondary button-small" data-action="mobile-filters" type="button">${icon('tune')} Filter</button><select class="select" data-action="sort"><option value="popular" ${state.sort === 'popular' ? 'selected' : ''}>Paling populer</option><option value="price-low" ${state.sort === 'price-low' ? 'selected' : ''}>Harga terendah</option><option value="price-high" ${state.sort === 'price-high' ? 'selected' : ''}>Harga tertinggi</option></select></div></div>
+                    <div class="filter-chips">${state.search ? `<span class="chip">${escapeHtml(state.search)} ×</span>` : ''}<span class="chip">Deposit refundable</span><span class="chip">Kondisi terverifikasi</span></div><div class="product-grid">${sorted.length ? sorted.map(productCard).join('') : '<div class="empty-state">Belum ada kostum yang sesuai.</div>'}</div><div class="pagination"></div>
+                </section>
+            </div></div>`;
+    };
 
-        function copyPortalLink() {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Link berhasil disalin!");
+    const detailPage = () => {
+        const product = productById(state.param || state.productId);
+        state.productId = product.id;
+        if (!product.size.includes(state.size)) state.size = product.size[0];
+        const addOnTotal = state.addons.reduce((sum, a) => sum + (a === 'wig' ? 35000 : 15000), 0);
+        const subtotal = (product.price + addOnTotal) * state.days;
+        const ship = 18000;
+        const total = subtotal + ship + product.deposit;
+        const images = [product.image, product.image, product.image, product.image];
+        return `<div class="container page-wrap"><div class="breadcrumb"><a href="#home" data-go="home">Beranda</a><span>/</span><a href="#catalog" data-go="catalog">Katalog</a><span>/</span><span>${escapeHtml(product.name)}</span></div>
+            <div class="detail-layout"><div><img class="detail-main-image" src="${escapeHtml(images[0])}" alt="${escapeHtml(product.name)}"><div class="detail-thumbs">${images.map((img, i) => `<img src="${escapeHtml(img)}" data-action="gallery" alt="Thumb ${i + 1}">`).join('')}</div><section class="panel" style="margin-top:20px"><h2>Yang termasuk dalam paket</h2><div class="stack">${product.accessories.map((item) => `<div class="price-line"><span>${icon('check_circle')} ${escapeHtml(item)}</span><span>Termasuk</span></div>`).join('')}</div></section></div>
+            <div class="detail-content"><span class="eyebrow">${escapeHtml(product.series)}</span><h1>${escapeHtml(product.name)}</h1><div class="product-meta"><span>${escapeHtml(product.category)} · ${product.reviews} ulasan</span><span class="rating">${icon('star')} ${product.rating}</span></div><p class="detail-blurb">${escapeHtml(product.description)}</p><div class="detail-price">${money(product.price)} <small>/ hari</small></div><div class="field"><span class="field-label">Pilih ukuran</span><div class="size-row">${product.size.map((s) => `<button class="size-option ${state.size === s ? 'selected' : ''}" data-size="${s}" type="button">${s}</button>`).join('')}</div></div><div class="field" style="margin-top:17px"><label for="rental-days">Lama sewa</label><select class="select" id="rental-days" data-action="days">${[1, 2, 3, 4, 5, 6, 7].map((d) => `<option value="${d}" ${state.days === d ? 'selected' : ''}>${d} hari</option>`).join('')}</select></div><div class="field" style="margin-top:17px"><label for="rental-date">Tanggal mulai</label><input class="input" id="rental-date" type="date" min="${toDateValue(new Date())}" value="${state.rentalDate}" data-action="start-date"></div><div class="field" style="margin-top:17px"><span class="field-label">Aksesori tambahan</span><div class="addon-list"><label class="addon-option"><span><input type="checkbox" data-addon="wig" ${state.addons.includes('wig') ? 'checked' : ''}> Styling wig premium</span><strong>+ Rp35.000 / hari</strong></label><label class="addon-option"><span><input type="checkbox" data-addon="care" ${state.addons.includes('care') ? 'checked' : ''}> Paket perawatan kostum</span><strong>+ Rp15.000 / hari</strong></label></div></div><div class="price-box"><div class="price-line"><span>Sewa (${state.days} hari)</span><strong>${money(subtotal)}</strong></div><div class="price-line"><span>Pengiriman</span><strong>${money(ship)}</strong></div><div class="price-line"><span>Deposit refundable</span><strong>${money(product.deposit)}</strong></div><div class="price-line total"><span>Total estimasi</span><strong>${money(total)}</strong></div><p class="muted small">Deposit dikembalikan setelah kostum diterima kembali dan diperiksa.</p></div><button class="button button-primary" style="width:100%" type="button" data-action="checkout">Lanjut ke pemesanan ${icon('arrow_forward')}</button></div></div></div>`;
+    };
+
+    const rulesPage = () => `<div class="container page-wrap"><div class="page-intro"><div><span class="eyebrow">Sebelum menyewa</span><h1 class="page-title">Aturan rental</h1><p>Supaya pengalaman rental nyaman dan kostum tetap terawat, baca ketentuan berikut.</p></div><button class="button button-primary" data-go="catalog" type="button">Pilih kostum ${icon('arrow_forward')}</button></div><div class="rules-grid"><nav class="rules-nav"><a href="#renter">Persyaratan penyewa</a><a href="#payment">Pembayaran & deposit</a><a href="#care">Perawatan kostum</a><a href="#shipping">Pengiriman & retur</a></nav><div class="rules-content"><section id="renter"><h2>Persyaratan penyewa</h2><ul><li>Penyewa berusia minimal 17 tahun dan memberikan identitas yang valid.</li><li>Nomor telepon dan nomor penjamin aktif dan dapat dihubungi.</li></ul></section><section id="payment"><h2>Pembayaran & deposit</h2><ul><li>Pesanan dikonfirmasi setelah DP minimal 50%.</li><li>Deposit refundable dikembalikan maksimal 3 hari kerja setelah retur selesai.</li></ul></section><section id="care"><h2>Perawatan kostum</h2><ul><li>Gunakan dengan tangan bersih, hindari makanan/minuman di area kostum.</li><li>Jangan mencuci atau menyetrika sendiri tanpa izin.</li></ul></section><section id="shipping"><h2>Pengiriman & retur</h2><ul><li>Dikirim melalui JNE Express dengan nomor resi terlampir.</li><li>Kembalikan kostum pada hari terakhir sewa sesuai jadwal.</li></ul></section></div></div></div>`;
+    const howToPage = () => `<div class="container page-wrap"><div class="page-intro"><div><span class="eyebrow">Panduan</span><h1 class="page-title">Cara sewa kostum</h1><p>Alur rental yang jelas dari pilih karakter sampai pengembalian.</p></div><button class="button button-primary" data-go="catalog">Mulai pilih kostum ${icon('arrow_forward')}</button></div><div class="steps-grid">${[['01', 'Pilih kostum', 'Cari karakter dan pilih ukuran.'], ['02', 'Isi data', 'Lengkapi kontak dan penjamin.'], ['03', 'Bayar DP', 'Unggah bukti transfer DP 50%.'], ['04', 'Tampil', 'Kostum dikirim dan siap dipakai.']].map(([n, t, c]) => `<article class="step-item"><span class="step-number">${n}</span><h3>${t}</h3><p>${c}</p></article>`).join('')}</div></div>`;
+
+    const checkoutPage = () => {
+        const product = productById(state.productId);
+        const addOnTotal = state.addons.reduce((sum, a) => sum + (a === 'wig' ? 35000 : 15000), 0);
+        const subtotal = (product.price + addOnTotal) * state.days;
+        const shipping = 18000;
+        const total = subtotal + shipping + product.deposit;
+        const minimumDp = Math.ceil(total * 0.5);
+        return `<div class="container page-wrap"><div class="breadcrumb"><a href="#catalog" data-go="catalog">Katalog</a><span>/</span><span>Checkout</span></div><div class="page-intro"><div><span class="eyebrow">Satu langkah lagi</span><h1 class="page-title">Formulir pemesanan</h1></div></div><form id="checkout-form"><div class="checkout-layout"><div class="checkout-sections">
+            <section class="form-section"><h2><span class="section-index">1</span> Kostum dipesan</h2><div class="readonly-product"><img src="${escapeHtml(product.image)}" alt=""><div><h3>${escapeHtml(product.name)}</h3><span class="muted small">Ukuran ${escapeHtml(state.size)} · ${state.days} hari</span></div></div></section>
+            <section class="form-section ai-checkout-panel"><h2><span class="section-index">AI</span> Asisten Cerdas</h2><div class="form-grid"><div class="field"><label>Tinggi badan (cm)</label><input class="input" id="fit-height" type="number" placeholder="165"></div><div class="field"><label>Berat badan (kg)</label><input class="input" id="fit-weight" type="number" placeholder="55"></div></div><div class="ai-result" style="margin-top:12px"><div><small>Rekomendasi ukuran AI</small><strong id="ai-fit-recommendation">Masukkan tinggi/berat badan</strong></div><div><small>Skor kepercayaan demo</small><strong id="ai-risk-score">55/100</strong></div></div></section>
+            <section class="form-section"><h2><span class="section-index">2</span> Data penyewa</h2><div class="form-grid"><div class="field"><label>Nama lengkap *</label><input class="input" name="name" required placeholder="Nama lengkap" value="Barbara Pavin"></div><div class="field"><label>Nomor telepon *</label><input class="input" name="phone" required placeholder="08123456789" value="081234567890"></div><div class="field"><label>Platform medsos</label><select class="select" name="socialPlatform"><option>Instagram</option><option>TikTok</option></select></div><div class="field"><label>Username</label><input class="input" name="socialHandle" placeholder="@username" value="@barbarapavin"></div><div class="field span-2"><label>Alamat pengiriman *</label><textarea class="textarea" name="address" required placeholder="Jalan, No. Rumah, Kota">Jl. Mawar No. 12, Jakarta Selatan</textarea></div><div class="field"><label>Nomor penjamin *</label><input class="input" name="guarantor" required placeholder="08..." value="089876543210"></div><div class="field"><label>Selfie identitas *</label><input class="input" name="idSelfie" type="file" accept="image/*" required></div><div class="field"><label>Pernah sewa sebelumnya?</label><div class="quantity-row"><label class="filter-label"><input type="radio" name="previousRental" value="yes" data-previous-rental> Ya</label><label class="filter-label"><input type="radio" name="previousRental" value="no" checked data-previous-rental> Tidak</label></div></div><div class="field" id="previous-store-wrap" hidden><label>Nama toko rental sebelumnya</label><input class="input" id="previous-store" name="previousStore" placeholder="Nama toko"></div></div></section>
+            <section class="form-section"><h2><span class="section-index">3</span> Pembayaran DP</h2><div class="price-line"><span>Minimum DP 50%</span><strong>${money(minimumDp)}</strong></div><div class="field" style="margin-top:10px"><label>Jumlah DP *</label><input class="input" name="paymentAmount" type="number" min="${minimumDp}" max="${total}" value="${minimumDp}" required></div><div class="field" style="margin-top:10px"><label>Bukti transfer *</label><input class="input" name="paymentProof" type="file" accept="image/*" required></div></section>
+        </div><aside class="sticky-summary"><h2>Ringkasan</h2><div class="price-line"><span>Subtotal</span><strong>${money(subtotal)}</strong></div><div class="price-line"><span>Deposit</span><strong>${money(product.deposit)}</strong></div><div class="price-line total"><span>Total</span><strong>${money(total)}</strong></div><button class="button button-primary" type="submit" style="width:100%;margin-top:16px">Kirim pesanan ${icon('arrow_forward')}</button></aside></div></form></div>`;
+    };
+
+    const ordersPage = () => {
+        const tabs = ['Semua', 'Menunggu verifikasi', 'Diproses', 'Disewa', 'Selesai'];
+        const customerOrders = state.orders.filter((o) => o.customerEmail === state.session?.email);
+        const visible = customerOrders.filter((o) => state.orderFilter === 'Semua' || o.bucket === state.orderFilter);
+        return `<div class="container page-wrap"><div class="page-intro"><div><span class="eyebrow">Pantau paket</span><h1 class="page-title">Pesanan saya</h1></div></div><div class="orders-tabs">${tabs.map((t) => `<button class="orders-tab ${state.orderFilter === t ? 'active' : ''}" data-order-filter="${t}" type="button">${t}</button>`).join('')}</div>${visible.length ? visible.map((o) => {
+            const product = productById(o.productId);
+            const stage = o.stage ?? 0;
+            return `<article class="order-card"><img src="${escapeHtml(product.image)}" alt=""><div><h3>${escapeHtml(product.name)}</h3><p class="muted small">ID: ${escapeHtml(o.id)} · Ukuran ${escapeHtml(o.size)}</p><span class="status-pill ${stage > 5 ? 'success' : ''}">${escapeHtml(orderStages[stage])}</span></div><button class="button button-secondary button-small" data-go="tracking" data-id="${escapeHtml(o.id)}" type="button">Lacak</button></article>`;
+        }).join('') : '<div class="empty-state">Belum ada pesanan.</div>'}</div>`;
+    };
+
+    const trackingPage = () => {
+        const order = state.orders.find((item) => item.id === state.param && item.customerEmail === state.session?.email);
+        if (!order) return `<div class="container page-wrap"><div class="empty-state">Pesanan tidak ditemukan.</div></div>`;
+        const product = productById(order.productId);
+        const stage = order.stage ?? 0;
+        return `<div class="container page-wrap"><div class="breadcrumb"><button class="text-button" data-go="orders">Pesanan saya</button><span>/</span><span>${escapeHtml(order.id)}</span></div><section class="success-panel"><span class="success-icon">${icon(stage >= 7 ? 'check' : 'package_2')}</span><h1>${escapeHtml(orderStages[stage])}</h1><p class="muted">Kode <strong>${escapeHtml(order.id)}</strong></p><div class="tracking-list">${orderStages.map((l, i) => `<div class="tracking-step ${i < stage ? 'done' : ''} ${i === stage ? 'current' : ''}"><span class="tracking-dot">${i < stage ? '✓' : i + 1}</span><div><strong>${l}</strong></div></div>`).join('')}</div><button class="button button-secondary" style="margin-top:18px" data-go="orders">Kembali</button></section></div>`;
+    };
+
+    const authPage = (register = false) => `<div class="container page-wrap"><div class="auth-layout"><div class="auth-art"><div class="auth-art-content"><span class="eyebrow">Let'sCosplay</span><h2>Jadilah karakter yang selalu kamu ingat.</h2></div></div><div class="auth-form-wrap"><h1>${register ? 'Daftar penyewa' : 'Masuk ke akun'}</h1><form class="auth-form" id="role-auth-form" data-mode="${register ? 'register' : 'login'}">${register ? '<div class="field"><label>Nama</label><input class="input" name="name" required value="Barbara"></div><input type="hidden" name="role" value="customer">' : ''}<div class="field"><label>Email</label><input class="input" type="email" name="email" required value="${register ? 'barbarapavin3099@gmail.com' : ''}"></div><div class="field"><label>Kata sandi</label><input class="input" type="password" name="password" required value="12345678"></div><p class="small auth-error" hidden></p><button class="button button-primary" type="submit">${register ? 'Daftar' : 'Masuk'} ${icon('arrow_forward')}</button></form><p class="auth-switch">${register ? 'Sudah punya akun?' : 'Belum punya akun?'} <button class="text-button" data-go="${register ? 'login' : 'register'}">${register ? 'Masuk' : 'Daftar'}</button></p><div class="notice" style="margin-top:20px">Demo Penyewa: barbarapavin3099@gmail.com / 12345678<br>Demo Admin: adminrental123@gmail.com / 12345678910</div></div></div></div>`;
+
+    const eventsPage = () => {
+        const publicEvents = state.events.filter((e) => e.status === 'Disetujui');
+        return `<div class="container page-wrap"><div class="page-intro"><div><span class="eyebrow">Komunitas</span><h1 class="page-title">Event Cosplay</h1></div><button class="button button-primary" data-go="organizer">Pasang Iklan Event</button></div><div class="stack">${publicEvents.map((e) => eventCard(e)).join('')}</div></div>`;
+    };
+
+    const eventDetailPage = () => {
+        const event = state.events.find((e) => e.id === state.param) || state.events[0];
+        const matches = state.inventory.slice(0, 2);
+        return `<div class="container page-wrap"><div class="breadcrumb"><button class="text-button" data-go="events">Event</button><span>/</span><span>${escapeHtml(event.title)}</span></div><div class="detail-layout"><img class="detail-main-image" src="${escapeHtml(event.image)}" alt=""><div class="detail-content"><h1>${escapeHtml(event.title)}</h1><p class="detail-blurb">${escapeHtml(event.description)}</p><div class="spec-row"><span class="spec-chip">${escapeHtml(event.date)}</span><span class="spec-chip">${escapeHtml(event.location)}</span></div></div></div><div class="section-heading"><div><h2>Kostum rekomendasi AI</h2></div></div><div class="product-grid">${matches.map(productCard).join('')}</div></div>`;
+    };
+
+    const organizerPage = () => `<div class="container page-wrap"><section class="organizer-hero"><div><span class="eyebrow" style="color:#ffb8d2">Portal Organizer</span><h1>Pasang event cosplay-mu.</h1></div></section><div class="panel" style="margin-top:24px"><form id="organizer-form" class="stack"><div class="field"><label>Judul Event *</label><input class="input" name="title" required placeholder="Gathering Cosplay Jakarta"></div><div class="form-grid"><div class="field"><label>Tanggal *</label><input class="input" name="date" type="date" required></div><div class="field"><label>Lokasi *</label><input class="input" name="location" required placeholder="Jakarta"></div></div><div class="field"><label>Tema *</label><input class="input" name="theme" required placeholder="Anime / Genshin"></div><div class="field"><label>Poster *</label><input class="input" name="poster" type="file" accept="image/*" required></div><button class="button button-primary" type="submit">Kirim Event</button></form></div></div>`;
+
+    const adminOverview = () => `<div class="admin-content-header"><h1>Dashboard Admin</h1></div><div class="stat-grid"><article class="stat-card"><span>Rental aktif</span><strong>14</strong></article><article class="stat-card"><span>Menunggu verifikasi</span><strong>${state.orders.filter(o=>o.stage<3).length}</strong></article><article class="stat-card"><span>Total Pendapatan</span><strong>Rp 15.450.000</strong></article><article class="stat-card"><span>Katalog</span><strong>${state.inventory.length} item</strong></article></div>`;
+    const adminInventory = () => `<div class="admin-content-header"><h1>Kelola Katalog</h1><button class="button button-primary" data-action="add-product">Tambah Kostum</button></div><div class="panel">${state.inventory.map(p=>`<div class="inventory-row"><img src="${escapeHtml(p.image)}" alt=""><span><strong>${escapeHtml(p.name)}</strong><small>${escapeHtml(p.category)}</small></span><span>${money(p.price)}</span><span>Stok: ${p.stock}</span><span><button class="button button-danger button-small" data-action="delete-product" data-id="${p.id}">Hapus</button></span></div>`).join('')}</div>`;
+    const adminOrders = () => `<div class="admin-content-header"><h1>Verifikasi Pesanan</h1></div>${state.orders.length ? state.orders.map(o=>`<article class="order-admin-card"><img src="${productById(o.productId).image}" alt=""><div><h3>${escapeHtml(o.customerName)}</h3><p class="small">DP: ${money(o.dp)} · ${orderStages[o.stage]}</p></div><button class="button button-primary button-small" data-action="advance-order" data-id="${o.id}">Proses</button></article>`).join('') : '<div class="empty-state">Belum ada pesanan.</div>'}`;
+    const adminEvents = () => `<div class="admin-content-header"><h1>Kurasi Event</h1></div>${state.events.map(e=>`<article class="order-admin-card"><img src="${e.image}" alt=""><div><h3>${escapeHtml(e.title)}</h3><p class="small">${e.status}</p></div>${e.status==='Menunggu review'?`<button class="button button-primary button-small" data-action="approve-event" data-id="${e.id}">Setujui</button>`:''}</article>`).join('')}`;
+    const adminQrCodes = () => `<div class="admin-content-header"><h1>Generator QR Code Event</h1></div><div class="qr-grid"><section class="panel qr-card"><h2>QR Organizer</h2><canvas id="qr-code-canvas"></canvas><p class="small qr-url" id="qr-url-text"></p></section></div>`;
+
+    const renderAdminQR = async () => {
+        const canvas = app.querySelector('#qr-code-canvas');
+        if(!canvas) return;
+        const url = `${location.origin}${location.pathname}#organizer`;
+        await QRCode.toCanvas(canvas, url, { width: 190, margin: 2 });
+        app.querySelector('#qr-url-text').textContent = url;
+    };
+
+    const adminPage = () => {
+        if (state.session?.role !== 'admin') return authPage(false);
+        const content = ({ overview: adminOverview, inventory: adminInventory, orders: adminOrders, events: adminEvents, qr: adminQrCodes }[state.adminSection] || adminOverview)();
+        return `<div class="admin-shell"><aside class="admin-sidebar"><nav class="admin-nav">${[['overview','Dashboard','dashboard'],['inventory','Katalog','checkroom'],['orders','Verifikasi Pesanan','fact_check'],['events','Kurasi Event','campaign'],['qr','Generator QR','qr_code_2']].map(([s,l,i])=>`<a href="#admin/${s}" data-admin-section="${s}" class="${state.adminSection===s?'active':''}">${icon(i)} ${l}</a>`).join('')}<a href="#home" data-go="home">${icon('storefront')} Toko</a></nav></aside><section class="admin-content">${content}</section></div>`;
+    };
+
+    const chatWidget = () => `<section class="chat-widget ${state.chatOpen ? 'chat-open' : ''}"><div class="chat-panel" ${state.chatOpen ? '' : 'hidden'}><header><div><strong>AI Assistant</strong><small>Tanya seputar rental & event</small></div><button class="icon-button" type="button" data-action="chat-close">${icon('close')}</button></header><div class="chat-messages">${state.chatMessages.map(m=>`<p class="chat-message ${m.role}">${escapeHtml(m.text)}</p>`).join('') || '<p class="chat-message bot">Halo! Ada yang bisa dibantu?</p>'}</div><form id="chat-form"><input name="message" placeholder="Tanya..." required><button class="button button-primary" type="submit">${icon('send')}</button></form></div><button class="chat-launcher" type="button" data-action="chat-toggle">${icon(state.chatOpen ? 'close' : 'smart_toy')}<span>Tanya AI</span></button></section>`;
+
+    const render = () => {
+        if (state.session?.role === 'admin' && state.page !== 'admin') { state.page = 'admin'; state.param = state.adminSection; }
+        if (state.session?.role === 'customer' && state.page === 'admin') { state.page = 'home'; state.param = null; }
+        const pages = { home: homePage, catalog: catalogPage, detail: detailPage, rules: rulesPage, howto: howToPage, checkout: checkoutPage, orders: ordersPage, tracking: trackingPage, login: () => authPage(false), register: () => authPage(true), events: eventsPage, event: eventDetailPage, organizer: organizerPage, admin: adminPage };
+        app.innerHTML = `${topHeader()}<main>${(pages[state.page] || homePage)()}</main>${footer()}${chatWidget()}`;
+        if (state.page === 'admin' && state.adminSection === 'qr') renderAdminQR();
+        if (state.page === 'catalog') {
+            const cards = [...app.querySelectorAll('.product-card')];
+            const pageCount = Math.max(1, Math.ceil(cards.length / 6));
+            state.catalogPage = Math.min(state.catalogPage, pageCount);
+            cards.forEach((c, i) => { c.hidden = i < (state.catalogPage - 1) * 6 || i >= state.catalogPage * 6; });
+            const pagination = app.querySelector('.pagination');
+            if (pagination) pagination.innerHTML = Array.from({ length: pageCount }, (_, i) => `<button data-page="${i + 1}" class="${state.catalogPage === i + 1 ? 'active' : ''}">${i + 1}</button>`).join('');
         }
+        document.documentElement.dataset.theme = theme();
+    };
 
-        function submitOrganizerEvent(e) {
+    app.addEventListener('click', (e) => {
+        const go = e.target.closest('[data-go]');
+        if (go) {
             e.preventDefault();
-            alert("Event berhasil diproses AI & dikirim ke Admin Rental!");
-            switchTab('hub');
+            navigate(go.dataset.go, go.dataset.id || null);
+            return;
         }
-    </script>
-</body>
-</html>
+        const sec = e.target.closest('[data-admin-section]');
+        if (sec) {
+            e.preventDefault();
+            state.adminSection = sec.dataset.adminSection;
+            navigate('admin', state.adminSection);
+            return;
+        }
+        const act = e.target.closest('[data-action]');
+        if (act) {
+            const id = act.dataset.id;
+            switch(act.dataset.action) {
+                case 'theme': toggleTheme(); break;
+                case 'logout': state.session = null; writeStorage(STORAGE_KEYS.session, null); navigate('home'); showToast('Keluar akun.'); break;
+                case 'checkout': navigate('checkout'); break;
+                case 'reset-filters': state.category = ''; state.search = ''; state.maxPrice = 200000; state.sizeFilters = []; state.onlyAvailable = true; render(); break;
+                case 'chat-toggle': state.chatOpen = !state.chatOpen; render(); break;
+                case 'chat-close': state.chatOpen = false; render(); break;
+                case 'delete-product': state.inventory = state.inventory.filter(p=>p.id!==id); writeStorage(STORAGE_KEYS.inventory, state.inventory); render(); showToast('Dihapus.'); break;
+                case 'advance-order': { const o = state.orders.find(item=>item.id===id); if(o){o.stage = Math.min(7, (o.stage||0)+1); writeStorage(STORAGE_KEYS.orders, state.orders); render(); showToast('Status diperbarui.');} break; }
+                case 'approve-event': { const ev = state.events.find(item=>item.id===id); if(ev){ev.status='Disetujui'; writeStorage(STORAGE_KEYS.events, state.events); render(); showToast('Event disetujui.');} break; }
+                case 'add-product': {
+                    const newP = { id: `c${Date.now()}`, name: 'Kostum Baru', series: 'Fandom', category: 'Anime', price: 120000, deposit: 50000, stock: 2, size: ['S','M','L'], image: seedProducts[0].image, description: 'Kostum baru terkurasi.', accessories:['Wig'], rating:5, reviews:0, tag:'Baru', themes:['anime'] };
+                    state.inventory.unshift(newP); writeStorage(STORAGE_KEYS.inventory, state.inventory); render(); showToast('Kostum ditambahkan.');
+                    break;
+                }
+            }
+        }
+        const cat = e.target.closest('[data-category]');
+        if(cat) { state.category = cat.dataset.category; navigate('catalog'); }
+        const sz = e.target.closest('[data-size]');
+        if(sz) { state.size = sz.dataset.size; render(); }
+        const pg = e.target.closest('[data-page]');
+        if(pg) { state.catalogPage = Number(pg.dataset.page); render(); }
+        const ot = e.target.closest('[data-order-filter]');
+        if(ot) { state.orderFilter = ot.dataset.orderFilter; render(); }
+    });
+
+    app.addEventListener('input', (e) => {
+        if(e.target.matches('#fit-height, #fit-weight')) {
+            const h = Number(app.querySelector('#fit-height')?.value || 0);
+            const rec = h > 175 ? 'L/XL' : h > 155 ? 'M/L' : 'S/M';
+            const el = app.querySelector('#ai-fit-recommendation');
+            if(el) el.textContent = h ? `Disarankan ${rec}` : 'Masukkan tinggi/berat';
+        }
+    });
+
+    app.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const id = form.getAttribute('id');
+        if(id === 'home-search') {
+            const fd = new FormData(form);
+            state.search = String(fd.get('query') || '').trim();
+            state.category = String(fd.get('category') || '');
+            navigate('catalog');
+        }
+        if(id === 'role-auth-form') {
+            const fd = new FormData(form);
+            const email = String(fd.get('email')).trim().toLowerCase();
+            const password = String(fd.get('password'));
+            const account = state.accounts.find(a=>a.email.toLowerCase()===email && a.password===password) || { email, name: fd.get('name') || 'User', role: email.includes('admin') ? 'admin' : 'customer' };
+            state.session = { email: account.email, name: account.name, role: account.role };
+            writeStorage(STORAGE_KEYS.session, state.session);
+            navigate(account.role === 'admin' ? 'admin' : 'orders');
+            showToast(`Berhasil masuk sebagai ${account.role}.`);
+        }
+        if(id === 'checkout-form') {
+            const product = productById(state.productId);
+            const order = {
+                id: `LC-${Date.now().toString().slice(-8)}`,
+                customerEmail: state.session.email,
+                productId: product.id,
+                size: state.size,
+                days: state.days,
+                total: (product.price * state.days) + 18000 + product.deposit,
+                dp: Number(new FormData(form).get('paymentAmount')),
+                stage: 0,
+                bucket: 'Menunggu verifikasi',
+                customerName: String(new FormData(form).get('name')),
+            };
+            state.orders.push(order);
+            writeStorage(STORAGE_KEYS.orders, state.orders);
+            navigate('tracking', order.id);
+            showToast('Pesanan berhasil dibuat.');
+        }
+        if(id === 'organizer-form') {
+            const fd = new FormData(form);
+            const poster = fd.get('poster');
+            const ev = {
+                id: `ev-${Date.now()}`,
+                title: String(fd.get('title')),
+                date: String(fd.get('date')),
+                location: String(fd.get('location')),
+                theme: String(fd.get('theme')),
+                category: 'Komunitas',
+                tier: 'Gratis',
+                status: 'Menunggu review',
+                image: await compressImage(poster),
+                description: `Event bertema ${fd.get('theme')} di ${fd.get('location')}.`,
+            };
+            state.events.unshift(ev);
+            writeStorage(STORAGE_KEYS.events, state.events);
+            navigate('events');
+            showToast('Event berhasil diajukan.');
+        }
+        if(id === 'chat-form') {
+            const fd = new FormData(form);
+            const q = String(fd.get('message'));
+            state.chatMessages.push({ role: 'user', text: q }, { role: 'bot', text: 'DP minimal 50%, deposit refundable, dan kostum siap dikirim ke rumah!' });
+            state.chatOpen = true;
+            render();
+        }
+    });
+
+    const [initPage, initParam] = location.hash.slice(1).split('/');
+    if(initPage) { state.page = initPage; state.param = initParam ? decodeURIComponent(initParam) : null; }
+    render();
+</script>
