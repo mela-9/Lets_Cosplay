@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Let'sCosplay — Rental Kostum Cosplay (Standalone UI/UX)</title>
+    <title>Let'sCosplay — Rental Kostum Cosplay</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
         :root {
-            color-scheme: light;
             --page: #fbf8fa;
             --surface: #ffffff;
             --surface-soft: #f6f1f5;
@@ -24,76 +21,32 @@
             --pink-deep: #d9387b;
             --green: #239b68;
             --amber: #d99018;
-            --red: #d9485f;
             --shadow: 0 16px 42px rgb(45 24 40 / 8%);
             font-family: 'Poppins', sans-serif;
         }
-
-        html[data-theme='dark'] {
-            color-scheme: dark;
-            --page: #17131b;
-            --surface: #211b25;
-            --surface-soft: #2a232f;
-            --surface-pink: #382432;
-            --text: #f6f3f7;
-            --muted: #aaa1ae;
-            --line: #39313e;
-            --pink: #ff6aa7;
-            --pink-deep: #f45193;
-            --green: #52c796;
-            --amber: #f0b74e;
-            --red: #fa7587;
-            --shadow: 0 18px 48px rgb(0 0 0 / 22%);
-        }
-
         * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body {
-            min-width: 320px;
-            margin: 0;
-            color: var(--text);
-            background: radial-gradient(ellipse at 2% 2%, rgb(244 81 147 / 8%), transparent 26rem), var(--page);
-            transition: color .2s ease, background-color .2s ease;
-        }
+        body { margin: 0; color: var(--text); background: var(--page); }
         button, input, select, textarea { font: inherit; }
-        button, a { -webkit-tap-highlight-color: transparent; }
-        button { color: inherit; cursor: pointer; }
-        a { color: inherit; text-decoration: none; }
-        img { display: block; max-width: 100%; }
-        .material-symbols-outlined { font-size: 20px; line-height: 1; vertical-align: middle; }
-
-        #app { min-height: 100vh; display: flex; flex-direction: column; }
         .container { width: min(1200px, calc(100% - 48px)); margin-inline: auto; }
         .eyebrow { color: var(--pink-deep); text-transform: uppercase; font-size: .73rem; font-weight: 800; letter-spacing: .12em; }
         .muted { color: var(--muted); }
         .small { font-size: .83rem; }
-
-        .site-header { position: sticky; z-index: 20; top: 0; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--page) 91%, transparent); backdrop-filter: blur(18px); }
-        .header-main { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
-        .brand { display: inline-flex; align-items: center; gap: 10px; }
-        .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px; color: white; background: var(--pink); font-weight: 700; }
-        .brand-name { font-weight: 700; font-size: 1.08rem; }
-        .brand-name span { color: var(--pink-deep); }
         
+        .role-banner { background: var(--surface-pink); border-bottom: 1px solid var(--pink); padding: 8px 16px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--pink-deep); }
+        .site-header { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--line); background: var(--surface); }
+        .header-main { min-height: 76px; display: flex; align-items: center; justify-content: space-between; }
+        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.08rem; }
+        .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px; color: white; background: var(--pink); }
+        .brand span { color: var(--pink-deep); }
         .main-nav { display: flex; gap: 5px; }
-        .nav-link { padding: 10px 14px; color: var(--muted); font-size: .86rem; font-weight: 700; border-radius: 10px; }
+        .nav-link { padding: 10px 14px; color: var(--muted); font-size: .86rem; font-weight: 700; border-radius: 10px; text-decoration: none; cursor: pointer; }
         .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface-soft); }
 
-        .header-actions { display: flex; align-items: center; gap: 9px; }
-        .button { min-height: 40px; padding: 10px 16px; border: 1px solid transparent; border-radius: 11px; font-weight: 700; font-size: .85rem; display: inline-flex; align-items: center; gap: 6px; }
+        .button { min-height: 40px; padding: 10px 16px; border: 1px solid transparent; border-radius: 11px; font-weight: 700; font-size: .85rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
         .button-primary { color: white; background: var(--pink); }
-        .button-secondary { border-color: var(--line); background: var(--surface); }
+        .button-secondary { border-color: var(--line); background: var(--surface); color: var(--text); }
         .button-soft { color: var(--pink-deep); background: var(--surface-pink); }
         .button-small { min-height: 32px; padding: 6px 12px; font-size: .78rem; }
-        .icon-button { width: 40px; height: 40px; border-radius: 11px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
-
-        .role-banner { background: var(--surface-pink); border-bottom: 1px solid var(--pink); padding: 8px 16px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--pink-deep); }
-
-        main { flex: 1; }
-        .page-wrap { padding: 40px 0 68px; }
-        .page-intro { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; }
-        .page-title { font-size: 2.3rem; margin: 0; }
-        .breadcrumb { display: flex; gap: 8px; margin-bottom: 16px; color: var(--muted); font-size: .78rem; }
 
         .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 19px; }
         .product-card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
@@ -107,6 +60,12 @@
         .availability { color: var(--green); font-weight: 700; font-size: .72rem; }
         .card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
 
+        .page-wrap { padding: 40px 0 68px; }
+        .page-intro { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; }
+        .page-title { font-size: 2.3rem; margin: 0; }
+        .breadcrumb { display: flex; gap: 8px; margin-bottom: 16px; color: var(--muted); font-size: .78rem; }
+        .breadcrumb a { color: var(--pink-deep); text-decoration: none; }
+
         .catalog-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; }
         .filter-panel { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); height: fit-content; }
         .filter-label { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: .82rem; color: var(--muted); cursor: pointer; }
@@ -115,7 +74,7 @@
         .detail-main-image { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; }
         .detail-price { font-size: 1.5rem; font-weight: 700; margin: 20px 0; }
         .size-row { display: flex; gap: 8px; margin-top: 8px; }
-        .size-option { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-weight: 700; }
+        .size-option { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-weight: 700; cursor: pointer; }
         .size-option.selected { color: var(--pink-deep); border-color: var(--pink); background: var(--surface-pink); }
         .price-box { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin: 20px 0; }
         .price-line { display: flex; justify-content: space-between; margin: 8px 0; font-size: .85rem; color: var(--muted); }
@@ -127,15 +86,15 @@
         .field label { font-size: .78rem; font-weight: 700; }
         .input, .textarea, .select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); }
         .textarea { min-height: 80px; }
-        .notice { padding: 12px; border-radius: 8px; background: color-mix(in srgb, var(--amber) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--amber) 30%, var(--line)); font-size: .78rem; }
+        .notice { padding: 12px; border-radius: 8px; background: #fff8e6; border: 1px solid #f0d588; font-size: .78rem; color: #7a5800; }
 
         .order-card { display: grid; grid-template-columns: 80px 1fr auto; gap: 16px; align-items: center; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin-bottom: 12px; }
         .order-card img { width: 80px; height: 90px; object-fit: cover; border-radius: 8px; }
-        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, var(--amber) 15%, transparent); color: var(--amber); font-size: .7rem; font-weight: 800; margin-top: 6px; }
+        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 99px; background: #fff0f6; color: var(--pink-deep); font-size: .7rem; font-weight: 800; margin-top: 6px; }
 
         .admin-shell { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 76px); }
         .admin-sidebar { padding: 20px; border-right: 1px solid var(--line); background: var(--surface); }
-        .admin-nav a { display: block; padding: 10px; color: var(--muted); font-weight: 700; border-radius: 8px; margin-bottom: 4px; cursor: pointer; }
+        .admin-nav a { display: block; padding: 10px; color: var(--muted); font-weight: 700; border-radius: 8px; margin-bottom: 4px; cursor: pointer; text-decoration: none; }
         .admin-nav a:hover, .admin-nav a.active { color: var(--pink-deep); background: var(--surface-pink); }
         .admin-content { padding: 28px; }
         .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
@@ -147,7 +106,6 @@
         .data-table th { color: var(--muted); font-size: .7rem; text-transform: uppercase; }
 
         .toast { position: fixed; right: 20px; bottom: 20px; background: #28212d; color: white; padding: 12px 18px; border-radius: 8px; font-size: .85rem; z-index: 50; box-shadow: var(--shadow); }
-
         .site-footer { margin-top: 40px; padding: 30px 0; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .82rem; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; }
         .footer-bottom { display: flex; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); font-size: .75rem; }
@@ -163,13 +121,13 @@
     <div id="app"></div>
 
     <script>
-        const STORAGE_KEYS = { theme: 'letscosplay-theme', orders: 'letscosplay-orders', role: 'letscosplay-role' };
+        const STORAGE_KEYS = { orders: 'letscosplay-orders-v2', role: 'letscosplay-role-v2' };
 
         const seedProducts = [
-            { id: 'c1', name: 'Raiden Shogun', series: 'Genshin Impact', category: 'Game', size: ['S', 'M', 'L'], price: 175000, deposit: 87500, stock: 3, rating: 4.9, reviews: 28, tag: 'Terlaris', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cosplay_of_Raiden_Shogun_DSCF1208.jpg/900px-Cosplay_of_Raiden_Shogun_DSCF1208.jpg', description: 'Cosplay Raiden Shogun dengan palet ungu Inazuma, obi merah, dan detail motif Electro.', accessories: ['Wig ungu', 'Obi & aksesori rambut', 'Prop pedang foam'] },
-            { id: 'c2', name: 'Kamado Nezuko', series: 'Demon Slayer', category: 'Anime', size: ['S', 'M'], price: 120000, deposit: 60000, stock: 4, rating: 4.9, reviews: 34, tag: 'Favorit', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg/900px-Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg', description: 'Cosplay kimono Nezuko dengan haori gelap, obi merah muda, dan bambu prop.', accessories: ['Haori hitam', 'Obi merah muda', 'Bambu prop'] },
-            { id: 'c3', name: 'Gojo Satoru', series: 'Jujutsu Kaisen', category: 'Anime', size: ['M', 'L', 'XL'], price: 150000, deposit: 75000, stock: 2, rating: 4.8, reviews: 19, tag: 'Pilihan', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Satoru_Goj%C5%8D_cosplay.jpg/720px-Satoru_Goj%C5%8D_cosplay.jpg', description: 'Seragam hitam Gojo dengan blindfold dan rambut putih khas penyihir.', accessories: ['Blindfold hitam', 'Wig putih', 'Jubah seragam'] },
-            { id: 'c4', name: 'Hatsune Miku', series: 'Vocaloid', category: 'Anime', size: ['S', 'M'], price: 135000, deposit: 67500, stock: 3, rating: 4.9, reviews: 22, tag: 'Idol', image: 'https://images.unsplash.com/photo-1722608577993-b8db8a9ce5cf?auto=format&fit=crop&w=900&q=85', description: 'Cosplay idol virtual dengan wig twin-tail biru toska dan aksen futuristik.', accessories: ['Wig twin-tail toska', 'Headset Miku', 'Dasi'] }
+            { id: 'c1', name: 'Raiden Shogun', series: 'Genshin Impact', category: 'Game', size: ['S', 'M', 'L'], price: 175000, deposit: 87500, stock: 3, rating: 4.9, tag: 'Terlaris', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cosplay_of_Raiden_Shogun_DSCF1208.jpg/900px-Cosplay_of_Raiden_Shogun_DSCF1208.jpg', description: 'Cosplay Raiden Shogun lengkap dengan wig, obi, dan prop senjata.' },
+            { id: 'c2', name: 'Kamado Nezuko', series: 'Demon Slayer', category: 'Anime', size: ['S', 'M'], price: 120000, deposit: 60000, stock: 4, rating: 4.9, tag: 'Favorit', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg/900px-Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg', description: 'Cosplay kimono Nezuko dengan haori dan bambu prop.' },
+            { id: 'c3', name: 'Gojo Satoru', series: 'Jujutsu Kaisen', category: 'Anime', size: ['M', 'L', 'XL'], price: 150000, deposit: 75000, stock: 2, rating: 4.8, tag: 'Pilihan', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Satoru_Goj%C5%8D_cosplay.jpg/720px-Satoru_Goj%C5%8D_cosplay.jpg', description: 'Seragam hitam Gojo dengan blindfold dan wig putih khas.' },
+            { id: 'c4', name: 'Hatsune Miku', series: 'Vocaloid', category: 'Anime', size: ['S', 'M'], price: 135000, deposit: 67500, stock: 3, rating: 4.9, tag: 'Idol', image: 'https://images.unsplash.com/photo-1722608577993-b8db8a9ce5cf?auto=format&fit=crop&w=900&q=85', description: 'Cosplay idol virtual dengan wig twin-tail biru toska.' }
         ];
 
         const state = {
@@ -209,28 +167,23 @@
 
         const header = () => `
             <div class="role-banner">
-                <span>✨ <strong>Demo Presentasi Dosen:</strong> Anda sedang melihat <strong>Let'sCosplay</strong> (${state.role === 'admin' ? 'Sisi Admin' : 'Sisi Penyewa'}).</span>
+                <span>✨ <strong>Demo Presentasi Dosen:</strong> <strong>Let'sCosplay</strong> (${state.role === 'admin' ? 'Sisi Admin' : 'Sisi Penyewa'}).</span>
                 <button onclick="toggleRole()" class="button button-primary button-small">Ganti ke Mode ${state.role === 'admin' ? 'Penyewa' : 'Admin'}</button>
             </div>
             <header class="site-header">
                 <div class="container header-main">
-                    <a class="brand" href="#" onclick="navigate('home')"><span class="brand-mark">LC</span><span class="brand-name">Let's<span>Cosplay</span></span></a>
+                    <a class="brand" href="#" onclick="navigate('home')"><span class="brand-mark">LC</span>Let's<span>Cosplay</span></a>
                     <nav class="main-nav">
                         ${state.role === 'admin' ? `
-                            <a href="#" onclick="state.adminSection='overview';render()" class="nav-link ${state.adminSection==='overview'?'active':''}">Dashboard</a>
-                            <a href="#" onclick="state.adminSection='inventory';render()" class="nav-link ${state.adminSection==='inventory'?'active':''}">Katalog</a>
-                            <a href="#" onclick="state.adminSection='orders';render()" class="nav-link ${state.adminSection==='orders'?'active':''}">Verifikasi Pesanan</a>
+                            <a onclick="state.adminSection='overview';render()" class="nav-link ${state.adminSection==='overview'?'active':''}">Dashboard</a>
+                            <a onclick="state.adminSection='inventory';render()" class="nav-link ${state.adminSection==='inventory'?'active':''}">Katalog</a>
+                            <a onclick="state.adminSection='orders';render()" class="nav-link ${state.adminSection==='orders'?'active':''}">Verifikasi Pesanan</a>
                         ` : `
-                            <a href="#" onclick="navigate('home')" class="nav-link ${state.page==='home'?'active':''}">Beranda</a>
-                            <a href="#" onclick="navigate('catalog')" class="nav-link ${state.page==='catalog'?'active':''}">Katalog Kostum</a>
-                            <a href="#" onclick="navigate('orders')" class="nav-link ${state.page==='orders'?'active':''}">Pesanan Saya (${state.orders.length})</a>
+                            <a onclick="navigate('home')" class="nav-link ${state.page==='home'?'active':''}">Beranda</a>
+                            <a onclick="navigate('catalog')" class="nav-link ${state.page==='catalog'?'active':''}">Katalog Kostum</a>
+                            <a onclick="navigate('orders')" class="nav-link ${state.page==='orders'?'active':''}">Pesanan Saya (${state.orders.length})</a>
                         `}
                     </nav>
-                    <div class="header-actions">
-                        <button class="icon-button" onclick="const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;localStorage.setItem(STORAGE_KEYS.theme,t);render()" aria-label="Tema">
-                            <span class="material-symbols-outlined">light_mode</span>
-                        </button>
-                    </div>
                 </div>
             </header>`;
 
@@ -238,8 +191,8 @@
             <footer class="site-footer">
                 <div class="container">
                     <div class="footer-grid">
-                        <div><a class="brand" href="#" onclick="navigate('home')"><span class="brand-mark">LC</span><span class="brand-name">Let's<span>Cosplay</span></span></a><p>Sistem Informasi Rental Kostum Berbasis Web untuk Wilayah Palembang & Indralaya.</p></div>
-                        <div><h4>Navigasi</h4><p><a href="#" onclick="navigate('catalog')">Katalog Kostum</a></p><p><a href="#" onclick="navigate('orders')">Pesanan Saya</a></p></div>
+                        <div><a class="brand" href="#" onclick="navigate('home')" style="margin-bottom:8px; display:inline-flex;"><span class="brand-mark">LC</span>Let's<span>Cosplay</span></a><p>Sistem Informasi Rental Kostum Berbasis Web untuk Palembang & Indralaya.</p></div>
+                        <div><h4>Navigasi</h4><p><a onclick="navigate('catalog')" style="cursor:pointer">Katalog Kostum</a></p><p><a onclick="navigate('orders')" style="cursor:pointer">Pesanan Saya</a></p></div>
                         <div><h4>Kontak</h4><p>WhatsApp: 08xx-xxxx-xxxx</p><p>Kampus Fasilkom Unsri</p></div>
                     </div>
                     <div class="footer-bottom"><span>© 2026 Let'sCosplay. Prototype Akademik.</span><span>Hilma Rida Azzahra (09010282428049)</span></div>
@@ -284,7 +237,7 @@
             const list = seedProducts.filter(p => !state.category || p.category === state.category);
             return `
             <div class="container page-wrap">
-                <div class="breadcrumb"><a href="#" onclick="navigate('home')">Beranda</a><span>/</span><span>Katalog Kostum</span></div>
+                <div class="breadcrumb"><a onclick="navigate('home')">Beranda</a><span>/</span><span>Katalog Kostum</span></div>
                 <div class="page-intro"><div><span class="eyebrow">Koleksi Lengkap</span><h1 class="page-title">Katalog Kostum</h1><p>Pilih karakter favoritmu dan tentukan durasi penyewaan.</p></div></div>
                 <div class="catalog-layout">
                     <aside class="filter-panel">
@@ -306,7 +259,7 @@
             const total = subtotal + 18000 + p.deposit;
             return `
             <div class="container page-wrap">
-                <div class="breadcrumb"><a href="#" onclick="navigate('catalog')">Katalog</a><span>/</span><span>${p.name}</span></div>
+                <div class="breadcrumb"><a onclick="navigate('catalog')">Katalog</a><span>/</span><span>${p.name}</span></div>
                 <div class="detail-layout">
                     <div><img class="detail-main-image" src="${p.image}" alt="${p.name}"></div>
                     <div>
@@ -339,7 +292,7 @@
             const total = (p.price * state.days) + 18000 + p.deposit;
             return `
             <div class="container page-wrap">
-                <div class="breadcrumb"><a href="#" onclick="navigate('detail')">Detail</a><span>/</span><span>Checkout</span></div>
+                <div class="breadcrumb"><a onclick="navigate('detail')">Detail</a><span>/</span><span>Checkout</span></div>
                 <div class="page-intro"><div><span class="eyebrow">Formulir</span><h1 class="page-title">Penyewaan Kostum</h1></div></div>
                 <form onsubmit="event.preventDefault(); submitOrder('${p.id}')" class="checkout-layout">
                     <div>
@@ -460,8 +413,6 @@
             document.getElementById('app').innerHTML = header() + `<main>${content}</main>` + footer();
         };
 
-        const savedTheme = localStorage.getItem(STORAGE_KEYS.theme) || 'light';
-        document.documentElement.dataset.theme = savedTheme;
         render();
     </script>
 </body>
