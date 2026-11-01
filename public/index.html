@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id" class="dark" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Let'sCosplay - Admin Rental & AI Ad Hub</title>
+    <script>
+        try {
+            const savedTheme = localStorage.getItem('letscosplay-theme');
+            if (savedTheme === 'light' || savedTheme === 'dark') {
+                document.documentElement.dataset.theme = savedTheme;
+                document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+            }
+        } catch {}
+    </script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+    <style>
+        :root {
+            color-scheme: dark;
+            --page-bg: #17131B;
+            --surface-bg: #1F1A24;
+            --inset-bg: #120F15;
+            --border-color: #322B3D;
+            --text-primary: #F6F6F8;
+            --text-secondary: #D1D5DB;
+            --text-muted: #9CA3AF;
+            --hero-start: rgb(59 7 100 / 60%);
+            --hero-end: #1F1A24;
+        }
+        html[data-theme="light"] {
+            color-scheme: light;
+            --page-bg: #F7F4F7;
+            --surface-bg: #FFFFFF;
+            --inset-bg: #F1EDF2;
+            --border-color: #E1D9E4;
+            --text-primary: #281F2C;
+            --text-secondary: #514758;
+            --text-muted: #716879;
+            --hero-start: #F9E4EF;
+            --hero-end: #FFF9FC;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--page-bg);
+            color: var(--text-primary);
+            transition: background-color 180ms ease, color 180ms ease;
+        }
+        .theme-header { background-color: color-mix(in srgb, var(--page-bg) 92%, transparent); }
+        .theme-surface { background-color: var(--surface-bg); }
+        .theme-inset { background-color: var(--inset-bg); }
+        .theme-border { border-color: var(--border-color); }
+        .theme-hero { background-image: linear-gradient(to right, var(--hero-start), var(--hero-end)); }
+        .theme-copy-primary { color: var(--text-primary); }
+        .theme-input { color: var(--text-primary); }
+        .theme-input::placeholder { color: var(--text-muted); }
+        .tab-inactive { background-color: rgb(255 255 255 / 5%); color: #D1D5DB; }
+        html[data-theme="light"] .tab-inactive { background-color: #EEE9F0; color: #514758; }
+        .theme-toggle {
+            width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+            border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-primary);
+            background-color: var(--surface-bg); transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+        }
+        .theme-toggle:hover { background-color: var(--inset-bg); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#F45193] selection:text-white">
+
+    <!-- Top Banner -->
+    <div class="bg-[#F45193] text-white text-xs font-bold py-1.5 px-4 text-center tracking-wide flex items-center justify-center gap-2 shadow-md">
+        <span class="material-symbols-outlined text-[16px]">bolt</span>
+        <span>✨ LET'SCOSPLAY — INTERACTIVE PROTOTYPE & AI EVENT HUB ✨</span>
+    </div>
+
+    <!-- Header -->
+    <header class="theme-header border-b theme-border sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 min-h-20 py-3 flex items-center justify-between gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#F45193] flex items-center justify-center text-white font-black text-lg">LC</div>
+                <h1 class="text-xl font-extrabold tracking-tight">Let's<span class="text-[#F45193]">Cosplay</span></h1>
+            </div>
+            <nav class="flex gap-2 items-center flex-wrap justify-end">
+                <button onclick="switchTab('admin')" id="btn-admin" class="px-4 py-2 rounded-xl bg-[#F45193] text-white font-bold text-xs shadow">Dashboard Admin QR</button>
+                <button onclick="switchTab('upload')" id="btn-upload" class="tab-inactive px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/10">Portal Upload Organizer</button>
+                <button onclick="switchTab('hub')" id="btn-hub" class="tab-inactive px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/10">Telusuri AI Hub (Publik)</button>
+                <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Ganti tema">
+                    <span id="theme-toggle-icon" class="material-symbols-outlined">light_mode</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full space-y-8">
+        
+        <!-- Tab 1: Admin Dashboard -->
+        <div id="tab-admin" class="space-y-6">
+            <div class="theme-hero border theme-border p-8 rounded-3xl space-y-4">
+                <h2 class="theme-copy-primary text-3xl font-extrabold">Pusat Generator QR Code & Otomasi Iklan</h2>
+                <p class="text-sm text-gray-300 max-w-2xl">Bagikan QR Code / link portal ke penyelenggara event agar mereka dapat mengunggah poster secara mandiri.</p>
+                <button onclick="copyPortalLink()" class="px-5 py-3 rounded-xl bg-[#F45193] text-white text-xs font-extrabold shadow-lg">Salin Link Portal Organizer</button>
+            </div>
+
+            <div class="theme-surface border theme-border p-6 rounded-3xl space-y-4">
+                <h3 class="theme-copy-primary font-bold text-lg">Daftar Event Terverifikasi</h3>
+                <div class="space-y-3" id="events-list-container">
+                    <!-- Dummy item fungsional -->
+                    <div class="theme-inset border theme-border p-4 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <div class="theme-copy-primary font-bold text-sm">Cosplay Matsuri Palembang 2026</div>
+                            <div class="text-xs text-gray-400 mt-0.5">15 November 2026 • PTC Mall Palembang <span class="text-[#F45193]">(Paid Promotion)</span></div>
+                        </div>
+                        <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-xl text-xs font-bold">Aktif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Organizer Portal Upload -->
+        <div id="tab-upload" class="hidden space-y-6">
+            <div class="theme-surface border theme-border max-w-xl mx-auto p-8 rounded-3xl space-y-6 shadow-2xl">
+                <h2 class="theme-copy-primary text-2xl font-extrabold text-center">Portal Upload Mandiri Organizer</h2>
+                <form id="organizer-form" onsubmit="submitOrganizerEvent(event)" class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Judul Event</label>
+                        <input type="text" id="org-title" required placeholder="Contoh: Palembang Anime Fest" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Tanggal Pelaksanaan</label>
+                        <input type="text" id="org-date" required placeholder="Contoh: 20 Desember 2026" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Lokasi / Venue</label>
+                        <input type="text" id="org-location" required placeholder="Contoh: Opi Mall Palembang" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Kategori Iklan</label>
+                        <select id="org-category" class="theme-input theme-inset border theme-border w-full px-4 py-3 rounded-xl text-sm mt-1 focus:outline-none focus:border-[#F45193]">
+                            <option value="Paid Promotion">Paid Promotion (Featured)</option>
+                            <option value="Community Partner">Community Partner (Gratis)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 rounded-xl bg-[#F45193] text-white font-extrabold text-sm shadow-lg">Kirim ke Sistem</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tab 3: Public AI Hub -->
+        <div id="tab-hub" class="hidden space-y-6">
+            <h2 class="theme-copy-primary text-2xl font-extrabold">Telusuri Event Bersama AI (Publik)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="theme-surface border theme-border p-6 rounded-3xl space-y-3 shadow-xl">
+                    <span class="px-3 py-1 rounded-full bg-[#F45193] text-white text-[10px] font-extrabold">Paid Promotion</span>
+                    <h3 class="theme-copy-primary font-extrabold text-lg">Cosplay Matsuri Palembang 2026</h3>
+                    <p class="text-xs text-gray-400">15 November 2026 • PTC Mall Palembang</p>
+                    <p class="text-xs text-gray-300">Event jejepangan terbesar di Sumatera Selatan dengan berbagai lomba cosplay menarik.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script Interaksi -->
+    <script>
+        function switchTab(tab) {
+            ['admin', 'upload', 'hub'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('btn-' + t).className = "tab-inactive px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/10";
+            });
+            document.getElementById('tab-' + tab).classList.remove('hidden');
+            document.getElementById('btn-' + tab).className = "px-4 py-2 rounded-xl bg-[#F45193] text-white font-bold text-xs shadow";
+        }
+
+        function setTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            try { localStorage.setItem('letscosplay-theme', theme); } catch {}
+            document.getElementById('theme-toggle-icon').textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const current = document.documentElement.dataset.theme;
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+
+        function copyPortalLink() {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Link berhasil disalin!");
+        }
+
+        function submitOrganizerEvent(e) {
+            e.preventDefault();
+            alert("Event berhasil diproses AI & dikirim ke Admin Rental!");
+            switchTab('hub');
+        }
+    </script>
+</body>
+</html>
