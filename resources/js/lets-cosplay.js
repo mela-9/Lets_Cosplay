@@ -148,9 +148,10 @@ const state = {
     modal: null,
     chatOpen: false,
     chatMessages: [],
+    chatRequestId: 0,
 };
 
-const productById = (id) => state.inventory.find((product) => product.id === id) || state.inventory[0] || {
+const productById = (id) => state.inventory.find((product) => String(product.id) === String(id)) || state.inventory[0] || {
     id: '', name: 'Kostum', price: 0, deposit: 0, image: '', size: ['M'], category: '', series: '', description: '', accessories: [], rating: 5, reviews: 0
 };
 const depositForProduct = (product) => Math.ceil(product.deposit * (state.trustScore >= 85 ? 0.5 : 1));
@@ -295,7 +296,7 @@ const detailPage = () => {
     const total = subtotal + ship + product.deposit;
     const images = [product.image, product.image, product.image, product.image];
     return `<div class="container page-wrap"><div class="breadcrumb"><a href="#home" data-go="home">Beranda</a><span>/</span><a href="#catalog" data-go="catalog">Katalog</a><span>/</span><span>${escapeHtml(product.name)}</span></div>
-        <div class="detail-layout"><div><img class="detail-main-image" src="${escapeHtml(images[0])}" alt="${escapeHtml(product.name)}"><div class="detail-thumbs">${images.map((image, index) => `<img src="${escapeHtml(image)}" data-action="gallery" alt="Foto ${index + 1} ${escapeHtml(product.name)}" loading="lazy">`).join('')}</div><section class="panel" style="margin-top:20px"><h2>Yang termasuk dalam paket</h2><div class="stack">${product.accessories.map((item) => `<div class="price-line"><span>${icon('check_circle')} ${escapeHtml(item)}</span><span>Termasuk</span></div>`).join('')}</div></section><section class="panel" style="margin-top:16px"><h2>Panduan ukuran</h2><p class="muted small">Ukuran menggunakan standar badan Indonesia. Pilih ukuran yang biasa kamu gunakan; tim kami akan mengonfirmasi sebelum dikirim.</p><div class="table-wrap"><table class="data-table"><thead><tr><th>Ukuran</th><th>Lingkar dada</th><th>Panjang</th></tr></thead><tbody><tr><td>S</td><td>82–88 cm</td><td>135 cm</td></tr><tr><td>M</td><td>89–96 cm</td><td>140 cm</td></tr><tr><td>L</td><td>97–104 cm</td><td>145 cm</td></tr></tbody></table></div></section></div>
+        <div class="detail-layout"><div><img class="detail-main-image" src="${escapeHtml(images[0])}" alt="${escapeHtml(product.name)}"><div class="detail-thumbs">${images.map((image, index) => `<img src="${escapeHtml(image)}" data-action="gallery" alt="Foto ${index + 1} ${escapeHtml(product.name)}" loading="lazy">`).join('')}</div><section class="panel" style="margin-top:20px"><h2>Yang termasuk dalam paket</h2><div class="stack">${(product.accessories || []).map((item) => `<div class="price-line"><span>${icon('check_circle')} ${escapeHtml(item)}</span><span>Termasuk</span></div>`).join('') || '<p class="muted small">Tidak ada aksesori tambahan.</p>'}</div></section><section class="panel" style="margin-top:16px"><h2>Panduan ukuran</h2><p class="muted small">Ukuran menggunakan standar badan Indonesia. Pilih ukuran yang biasa kamu gunakan; tim kami akan mengonfirmasi sebelum dikirim.</p><div class="table-wrap"><table class="data-table"><thead><tr><th>Ukuran</th><th>Lingkar dada</th><th>Panjang</th></tr></thead><tbody><tr><td>S</td><td>82–88 cm</td><td>135 cm</td></tr><tr><td>M</td><td>89–96 cm</td><td>140 cm</td></tr><tr><td>L</td><td>97–104 cm</td><td>145 cm</td></tr></tbody></table></div></section></div>
         <div class="detail-content"><span class="eyebrow">${escapeHtml(product.series)}</span><h1>${escapeHtml(product.name)}</h1><div class="product-meta"><span>${escapeHtml(product.category)} · ${product.reviews} ulasan</span><span class="rating">${icon('star')} ${product.rating}</span></div><p class="detail-blurb">${escapeHtml(product.description)}</p><div class="detail-price">${money(product.price)} <small>/ hari</small></div><div class="field"><span class="field-label">Pilih ukuran</span><div class="size-row">${product.size.map((size) => `<button class="size-option ${state.size === size ? 'selected' : ''}" data-size="${size}" type="button">${size}</button>`).join('')}<button class="text-button small" data-go="rules" type="button">Panduan ukuran</button></div></div><div class="field" style="margin-top:17px"><label for="rental-days">Lama sewa</label><select class="select" id="rental-days" data-action="days">${[1, 2, 3, 4, 5, 6, 7].map((days) => `<option value="${days}" ${state.days === days ? 'selected' : ''}>${days} hari</option>`).join('')}</select></div><div class="field" style="margin-top:17px"><label for="rental-date">Tanggal mulai sewa</label><input class="input" id="rental-date" type="date" min="${toDateValue(new Date())}" value="${state.rentalDate}" data-action="start-date" required><small class="muted">Pilih tanggal kostum akan mulai digunakan.</small></div><div class="field" style="margin-top:17px"><span class="field-label">Aksesori tambahan</span><div class="addon-list"><label class="addon-option"><span><input type="checkbox" data-addon="wig" ${state.addons.includes('wig') ? 'checked' : ''}> Styling wig premium</span><strong>+ Rp35.000 / hari</strong></label><label class="addon-option"><span><input type="checkbox" data-addon="care" ${state.addons.includes('care') ? 'checked' : ''}> Paket perawatan kostum</span><strong>+ Rp15.000 / hari</strong></label></div></div><div class="price-box"><div class="price-line"><span>Sewa (${state.days} hari)</span><strong>${money(subtotal)}</strong></div><div class="price-line"><span>Estimasi pengiriman</span><strong>${money(ship)}</strong></div><div class="price-line"><span>Deposit refundable</span><strong>${money(product.deposit)}</strong></div><div class="price-line total"><span>Estimasi total</span><strong>${money(total)}</strong></div><p class="muted small">Deposit dikembalikan setelah kostum diterima dan kondisinya diperiksa.</p></div><button class="button button-primary" style="width:100%" type="button" data-action="checkout">Lanjut ke pemesanan ${icon('arrow_forward')}</button><button class="button button-secondary" style="width:100%;margin-top:8px" type="button" data-go="rules">Baca aturan rental</button></div></div></div>`;
 };
 
@@ -433,7 +434,7 @@ const adminPage = () => {
     return adminShell(content);
 };
 
-const chatWidget = () => `<section class="chat-widget ${state.chatOpen ? 'chat-open' : ''}" aria-label="Asisten AI Let'sCosplay"><div class="chat-panel" ${state.chatOpen ? '' : 'hidden'}><header><div><strong>Asisten AI Let'sCosplay</strong><small>Aturan, stok kostum, dan jadwal event</small></div><button class="icon-button" type="button" data-action="chat-close" aria-label="Tutup chatbot">${icon('close')}</button></header><div class="chat-messages" id="chat-messages">${state.chatMessages.length ? state.chatMessages.map((message) => `<p class="chat-message ${message.role}">${escapeHtml(message.text)}</p>`).join('') : '<p class="chat-message bot">Halo! Tanyakan aturan rental, ketersediaan kostum, atau jadwal event.</p>'}</div><form id="chat-form"><input class="input" name="message" placeholder="Tulis pertanyaan..." aria-label="Pertanyaan untuk chatbot" required><button class="button button-primary" type="submit" aria-label="Kirim pertanyaan">${icon('send')}</button></form></div><button class="chat-launcher" type="button" data-action="chat-toggle" aria-label="Buka Asisten AI">${icon(state.chatOpen ? 'close' : 'smart_toy')}<span>${state.chatOpen ? 'Tutup' : 'Tanya AI'}</span></button></section>`;
+const chatWidget = () => `<section class="chat-widget ${state.chatOpen ? 'chat-open' : ''}" aria-label="Asisten AI Let'sCosplay"><div class="chat-panel" ${state.chatOpen ? '' : 'hidden'}><header><div><strong>Asisten AI Let'sCosplay</strong><small>Aturan, stok kostum, dan jadwal event</small></div><div><button class="icon-button" type="button" data-action="chat-reset" title="Bersihkan obrolan" aria-label="Bersihkan obrolan">${icon('refresh')}</button><button class="icon-button" type="button" data-action="chat-close" aria-label="Tutup chatbot">${icon('close')}</button></div></header><div class="chat-messages" id="chat-messages">${state.chatMessages.length ? state.chatMessages.map((message) => `<p class="chat-message ${message.role}">${escapeHtml(message.text)}</p>`).join('') : '<p class="chat-message bot">Halo! Tanyakan aturan rental, ketersediaan stok/ukuran kostum, atau jadwal event.</p>'}</div><form id="chat-form"><input class="input" name="message" placeholder="Tulis pertanyaan..." aria-label="Pertanyaan untuk chatbot" required><button class="button button-primary" type="submit" aria-label="Kirim pertanyaan">${icon('send')}</button></form></div><button class="chat-launcher" type="button" data-action="chat-toggle" aria-label="Buka Asisten AI">${icon(state.chatOpen ? 'close' : 'smart_toy')}<span>${state.chatOpen ? 'Tutup' : 'Tanya AI'}</span></button></section>`;
 
 const render = () => {
     if (state.session?.role === 'admin' && state.page !== 'admin') {
@@ -588,29 +589,101 @@ const setOrderStage = (id, delta = 1, exact = null) => {
 
 const matchingProducts = (text) => {
     const words = text.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 3);
-    return state.inventory.map((product) => ({ product, score: product.themes.filter((themeWord) => words.some((word) => word.includes(themeWord) || themeWord.includes(word))).length })).filter(({ score }) => score > 0).sort((a, b) => b.score - a.score).slice(0, 2).map(({ product }) => product);
+    return state.inventory.map((product) => ({ product, score: (Array.isArray(product.themes) ? product.themes : []).filter((themeWord) => words.some((word) => word.includes(themeWord) || themeWord.includes(word))).length })).filter(({ score }) => score > 0).sort((a, b) => b.score - a.score).slice(0, 2).map(({ product }) => product);
 };
 
 const answerChatQuestion = (question) => {
-    const text = question.toLowerCase();
-    if (/aturan|dp|deposit|bayar|pembayaran|retur|sewa/.test(text)) return 'DP minimal 50% dari total pesanan. Sisa pembayaran dilunasi paling lambat H-1. Deposit dikembalikan setelah kostum retur dan lolos pemeriksaan. Detail ada di halaman Rules Rental.';
+    const text = question.toLowerCase().trim();
+    
+    // 1. Deteksi Ukuran (XL, L, M, S, XS) - Didahulukan!
+    const sizeMatch = text.match(/\b(xs|s|m|l|xl)\b/i);
+    if (sizeMatch) {
+        const matchedSize = sizeMatch[1].toUpperCase();
+        const filteredBySize = state.inventory.filter((p) => {
+            const sizes = Array.isArray(p.size) ? p.size : [p.size];
+            return sizes.map(s => s.toUpperCase()).includes(matchedSize);
+        });
+
+        if (filteredBySize.length > 0) {
+            return `Berikut pilihan kostum berukuran ${matchedSize}:\n` + 
+                filteredBySize.map((p) => `• ${p.name} (${money(p.price)}/hari)`).join('\n');
+        } else {
+            return `Maaf, saat ini belum ada kostum yang tersedia untuk ukuran ${matchedSize}.`;
+        }
+    }
+
+    // 2. Cara / Alur Sewa
+    if (/(cara|langkah|gimana|bagaimana|alur|prosedur|pesan|order).*(sewa|rental|kostum)|(cara sewa)/.test(text)) {
+        return 'Alur sewa kostum di Let\'sCosplay:\n' +
+            '1. Pilih kostum & tanggal sewa di Katalog.\n' +
+            '2. Lengkapi formulir data penyewa & unggah identitas.\n' +
+            '3. Bayar DP minimal 50% untuk konfirmasi pesanan.\n' +
+            '4. Kostum dikirim via JNE, tampil percaya diri, lalu kembalikan sesuai jadwal!';
+    }
+
+    // 3. Aturan & Syarat Rental
+    if (/aturan|rule|rules|syarat|ketentuan|deposit|dp|denda|keterlambatan|perawatan/.test(text)) {
+        return 'Aturan & Ketentuan Rental:\n' +
+            '• Penyewa minimal berusia 17 tahun & memiliki KTP.\n' +
+            '• DP minimal 50% untuk mengamankan pesanan.\n' +
+            '• Deposit bersifat refundable & dikembalikan max 3 hari kerja setelah kostum dicek.\n' +
+            '• Dilarang mencuci/menyetrika/mengubah kostum tanpa izin.';
+    }
+
+    // 4. Informasi Event
     if (/event|jadwal|acara|komunitas/.test(text)) {
         const events = state.events.filter((event) => event.status === 'Disetujui').slice(0, 3);
-        return events.length ? `Event mendatang: ${events.map((event) => `${event.title} — ${event.date} (${event.location})`).join('; ')}.` : 'Belum ada event komunitas yang tayang.';
+        return events.length 
+            ? `Event mendatang: ${events.map((e) => `${e.title} (${e.date})`).join('; ')}.` 
+            : 'Belum ada event komunitas yang tayang saat ini.';
     }
-    const matches = matchingProducts(text).filter((product) => product.name.toLowerCase().includes(text) || product.series.toLowerCase().includes(text) || product.origin?.toLowerCase().includes(text));
-    if (matches.length) return matches.map((product) => `${product.name}: ${product.stock > 0 ? `tersedia, ukuran ${product.size.join(', ')}` : 'sedang disewa'}, ${money(product.price)}/hari.`).join(' ');
-    if (/stok|tersedia|ukuran|kostum|harga|raiden|nezuko|gojo|miku|anya|alhaitham/.test(text)) {
-        const products = state.inventory.filter((product) => product.stock > 0).slice(0, 4);
-        return `Kostum yang tersedia: ${products.map((product) => `${product.name} (${product.size.join('/')}, ${money(product.price)}/hari)`).join('; ')}.`;
+
+    // 5. Rekomendasi Simpel / Pemula
+    if (/simple|simpel|pemula|mudah|murah|rekomendasi|saran/.test(text)) {
+        const simpleCostumes = state.inventory.slice(0, 3);
+        if (simpleCostumes.length > 0) {
+            return `Rekomendasi kostum simpel untuk pemula:\n` +
+                simpleCostumes.map((p) => `• ${p.name} (${money(p.price)}/hari)`).join('\n') +
+                `\nCek menu Katalog Kostum untuk detail selengkapnya!`;
+        }
     }
-    return 'Saya bisa membantu soal Rules Rental, harga dan ukuran kostum, ketersediaan, serta jadwal event komunitas.';
+
+    // 6. Buang Kata Imbuhan & Partikel (kah, sih, dong, ada, yang, dll)
+    const stopWords = ['apa', 'saj', 'saja', 'kah', 'tah', 'sih', 'dong', 'ya', 'gak', 'gak', 'ada', 'yang', 'kostum', 'berukuran', 'ukuran', 'stok', 'size', 'tolong', 'cari'];
+    const cleanWords = text.split(' ').filter(word => !stopWords.includes(word));
+    const cleanText = cleanWords.join(' ');
+
+    if (cleanText.length > 1) {
+        const matchedProducts = state.inventory.filter((product) => {
+            const pName = product.name.toLowerCase();
+            const pSeries = (product.series || '').toLowerCase();
+            return cleanText.includes(pName) || pName.includes(cleanText) || (pSeries && cleanText.includes(pSeries));
+        });
+
+        if (matchedProducts.length > 0) {
+            return matchedProducts.map((p) => 
+                `📌 ${p.name}: ${p.stock > 0 ? `Tersedia (${p.stock} pcs), ukuran ${Array.isArray(p.size) ? p.size.join(', ') : p.size}` : 'Sedang disewa'} — ${money(p.price)}/hari.`
+            ).join('\n');
+        }
+    }
+
+    // 7. Stok Umum
+    if (/stok|katalog|daftar|ada apa aja/.test(text)) {
+        const available = state.inventory.filter(p => p.stock > 0).slice(0, 4);
+        if (available.length) {
+            return `Beberapa kostum yang siap disewa saat ini:\n` + 
+                available.map(p => `• ${p.name} (${money(p.price)}/hari)`).join('\n') +
+                '\nCek menu Katalog Kostum untuk pilihan lengkapnya!';
+        }
+    }
+
+    return 'Saya Asisten Let\'sCosplay! Kamu bisa menanyakan cara sewa, aturan rental, stok ukuran tertentu (misal: "ukuran XL"), atau jadwal event.';
 };
 
 const openProductModal = (product = null) => {
     const editing = Boolean(product);
     const item = product || { name: '', series: '', category: 'Anime', price: 80000, deposit: 250000, stock: 1, size: ['S', 'M', 'L'], image: '', description: '' };
-    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="product-modal-title"><div class="admin-content-header"><h2 id="product-modal-title">${editing ? 'Edit kostum' : 'Tambah kostum'}</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><form id="product-form" class="stack"><input type="hidden" name="id" value="${escapeHtml(item.id || '')}"><div class="field"><label>Nama kostum</label><input class="input" name="name" required value="${escapeHtml(item.name)}"></div><div class="form-grid"><div class="field"><label>Serial / fandom</label><input class="input" name="series" required value="${escapeHtml(item.series)}"></div><div class="field"><label>Kategori</label><select class="select" name="category">${categories.map((category) => `<option ${category.name === item.category ? 'selected' : ''}>${category.name}</option>`).join('')}</select></div><div class="field"><label>Harga sewa / hari</label><input class="input" name="price" type="number" min="1000" required value="${item.price}"></div><div class="field"><label>Deposit</label><input class="input" name="deposit" type="number" min="0" required value="${item.deposit}"></div><div class="field"><label>Jumlah stok</label><input class="input" name="stock" type="number" min="0" required value="${item.stock}"></div><div class="field"><label>Ukuran tersedia</label><input class="input" name="size" required value="${escapeHtml(item.size.join(', '))}" placeholder="S, M, L"></div></div><div class="field"><label>URL foto produk</label><input class="input" name="image" type="url" value="${escapeHtml(item.image)}" placeholder="https://..."></div><div class="field"><label>Deskripsi</label><textarea class="textarea" name="description">${escapeHtml(item.description)}</textarea></div><button class="button button-primary" type="submit">${editing ? 'Simpan perubahan' : 'Tambah ke katalog'}</button></form></section></div>`;
+    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="product-modal-title"><div class="admin-content-header"><h2 id="product-modal-title">${editing ? 'Edit kostum' : 'Tambah kostum'}</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><form id="product-form" class="stack"><input type="hidden" name="id" value="${escapeHtml(item.id || '')}"><div class="field"><label>Nama kostum</label><input class="input" name="name" required value="${escapeHtml(item.name)}"></div><div class="form-grid"><div class="field"><label>Serial / fandom</label><input class="input" name="series" required value="${escapeHtml(item.series)}"></div><div class="field"><label>Kategori</label><select class="select" name="category">${categories.map((category) => `<option ${category.name === item.category ? 'selected' : ''}>${category.name}</option>`).join('')}</select></div><div class="field"><label>Harga sewa / hari</label><input class="input" name="price" type="number" min="1000" required value="${item.price}"></div><div class="field"><label>Deposit</label><input class="input" name="deposit" type="number" min="0" required value="${item.deposit}"></div><div class="field"><label>Jumlah stok</label><input class="input" name="stock" type="number" min="0" required value="${item.stock}"></div><div class="field"><label>Ukuran tersedia</label><input class="input" name="size" required value="${escapeHtml(Array.isArray(item.size) ? item.size.join(', ') : item.size)}" placeholder="S, M, L"></div></div><div class="field"><label>URL foto produk</label><input class="input" name="image" type="url" value="${escapeHtml(item.image)}" placeholder="https://..."></div><div class="field"><label>Deskripsi</label><textarea class="textarea" name="description">${escapeHtml(item.description)}</textarea></div><button class="button button-primary" type="submit">${editing ? 'Simpan perubahan' : 'Tambah ke katalog'}</button></form></section></div>`;
     render();
 };
 
@@ -692,8 +765,14 @@ app.addEventListener('click', (event) => {
             case 'close-modal': if (!action.classList.contains('modal-backdrop') || event.target === action) { state.modal = null; render(); } break;
             case 'forgot': showToast('Demo: silakan hubungi admin untuk reset kata sandi.'); break;
             case 'menu': document.querySelector('.main-nav')?.classList.toggle('menu-open'); break;
-            case 'chat-toggle': state.chatOpen = true; render(); break;
+            case 'chat-toggle': state.chatOpen = !state.chatOpen; render(); break;
             case 'chat-close': state.chatOpen = false; render(); break;
+            case 'chat-reset':
+                state.chatRequestId += 1;
+                state.chatMessages = [];
+                render();
+                showToast('Obrolan telah dibersihkan.');
+                break;
             case 'gallery': { const mainImage = document.querySelector('.detail-main-image'); if (mainImage) mainImage.src = action.src; break; }
         }
         return;
@@ -774,11 +853,61 @@ app.addEventListener('submit', async (event) => {
     if (!form.reportValidity()) return;
 
     if (formId === 'chat-form') {
-        const question = String(new FormData(form).get('message') || '').trim();
-        state.chatMessages.push({ role: 'user', text: question }, { role: 'bot', text: answerChatQuestion(question) });
+        const inputElem = form.querySelector('input[name="message"]');
+        const question = String(inputElem?.value || '').trim();
+        if (!question) return;
+
+        const requestId = ++state.chatRequestId;
+        inputElem.value = '';
+        state.chatMessages.push({ role: 'user', text: question });
         state.chatOpen = true;
         render();
-        requestAnimationFrame(() => { const messages = document.querySelector('#chat-messages'); if (messages) messages.scrollTop = messages.scrollHeight; });
+
+        const scrollToBottom = () => requestAnimationFrame(() => {
+            const messagesContainer = document.querySelector('#chat-messages');
+            if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+        const appendBotReply = (reply) => {
+            if (requestId !== state.chatRequestId) return;
+            state.chatMessages.push({ role: 'bot', text: reply });
+            render();
+            scrollToBottom();
+        };
+
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ message: question })
+        })
+        .then(async (res) => {
+            const responseText = await res.text();
+            let data = {};
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch {
+                data = { message: responseText };
+            }
+
+            if (!res.ok) {
+                throw new Error(data.message || data.error?.message || `Chat API returned HTTP ${res.status}`);
+            }
+
+            return data;
+        })
+        .then(data => {
+            if (typeof data.reply !== 'string' || !data.reply.trim()) {
+                throw new Error(data.message || 'Chat API returned an empty reply');
+            }
+            appendBotReply(data.reply.trim());
+        })
+        .catch((error) => {
+            console.error(`Chatbot API failed (${error.message}); using local answer.`);
+            appendBotReply(answerChatQuestion(question));
+        });
+
         return;
     }
 
@@ -812,41 +941,57 @@ app.addEventListener('submit', async (event) => {
         const values = new FormData(form);
         const { product, total } = checkoutTotals();
         const dp = Number(values.get('paymentAmount'));
-        const minimum = Math.ceil(total * .5);
-        if (dp < minimum || dp > total) { showToast(`DP harus antara ${money(minimum)} dan ${money(total)}.`); return; }
-        const previousStore = String(values.get('previousStore') || '');
-        if (values.get('previousRental') === 'yes' && !previousStore.trim()) { document.querySelector('#previous-store').focus(); return; }
-        const order = {
-            id: `LC-${Date.now().toString().slice(-8)}`,
-            customerEmail: state.session.email,
-            productId: product.id,
-            size: state.size,
-            days: state.days,
-            rentalDate: formatDate(state.rentalDate),
-            deposit: product.deposit,
-            total,
-            dp,
-            trustScore: state.trustScore,
-            stage: 0,
-            bucket: 'Menunggu verifikasi',
+        const minimum = Math.ceil(total * 0.5);
+
+        if (dp < minimum || dp > total) { 
+            showToast(`DP harus antara ${money(minimum)} dan ${money(total)}.`); 
+            return; 
+        }
+
+        const payload = {
+            customerEmail: state.session?.email,
             customerName: String(values.get('name')),
             phone: String(values.get('phone')),
             address: String(values.get('address')),
             socialPlatform: String(values.get('socialPlatform')),
             socialHandle: String(values.get('socialHandle')),
             guarantor: String(values.get('guarantor')),
-            idSelfieName: values.get('idSelfie')?.name || '',
-            idSelfieImage: await compressImage(values.get('idSelfie')),
-            paymentProofName: values.get('paymentProof')?.name || '',
-            paymentProofImage: await compressImage(values.get('paymentProof')),
-            paymentMethod: String(values.get('paymentMethod')),
-            previousStore,
-            createdAt: new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date()),
+            productId: product.id,
+            size: state.size,
+            days: state.days,
+            rentalDate: state.rentalDate,
+            deposit: product.deposit,
+            total: total,
+            dp: dp,
+            paymentMethod: String(values.get('paymentMethod'))
         };
-        state.orders.push(order);
-        persistOrders();
-        navigate('tracking', order.id);
-        showToast('Pesanan demo berhasil dibuat.');
+
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast('Pesanan berhasil dibuat!');
+                return fetch(`/api/orders?email=${encodeURIComponent(state.session.email)}`);
+            }
+        })
+        .then(res => res ? res.json() : null)
+        .then(orders => {
+            if (orders) state.orders = orders;
+            navigate('orders');
+        })
+        .catch(err => {
+            console.error('Order API Error:', err);
+            showToast('Gagal memproses pesanan ke database.');
+        });
+
+        return;
     }
 
     if (formId === 'role-auth-form') {
@@ -859,56 +1004,54 @@ app.addEventListener('submit', async (event) => {
                 errorElement.className = 'small auth-error';
             }
         };
-        const email = String(values.get('email')).trim().toLowerCase();
-        const password = String(values.get('password'));
 
-        if (form.dataset.mode === 'register') {
-            const role = String(values.get('role'));
-            if (role === 'admin' && state.accounts.some((account) => account.role === 'admin')) {
-                showAuthError('Akun Admin Rental sudah terdaftar. Kepemilikan ganda tidak diizinkan untuk keamanan sistem.');
+        const isRegister = form.dataset.mode === 'register';
+        const endpoint = isRegister ? '/api/register' : '/api/login';
+
+        const payload = isRegister ? {
+            name: String(values.get('name') || '').trim(),
+            email: String(values.get('email') || '').trim().toLowerCase(),
+            password: String(values.get('password')),
+            role: String(values.get('role') || 'customer'),
+        } : {
+            email: String(values.get('email') || '').trim().toLowerCase(),
+            password: String(values.get('password')),
+        };
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(({ status, body }) => {
+            if (status !== 200) {
+                showAuthError(body.message || 'Terjadi kesalahan saat masuk/daftar.');
                 return;
             }
-            if (state.accounts.some((account) => account.email.toLowerCase() === email)) {
-                showAuthError('Email sudah terdaftar. Gunakan email lain atau masuk ke akunmu.');
-                return;
-            }
-            const account = { email, password, name: String(values.get('name')).trim(), role };
-            state.accounts.push(account);
-            writeStorage(STORAGE_KEYS.accounts, state.accounts);
-            state.session = { email: account.email, name: account.name, role: account.role };
+
+            state.session = body.user;
             writeStorage(STORAGE_KEYS.session, state.session);
-            
-            if (role === 'admin') {
+
+            if (body.user.role === 'admin') {
                 state.adminSection = 'overview';
                 location.hash = '#admin/overview';
                 navigate('admin');
+                showToast('Berhasil masuk sebagai Admin Rental.');
             } else {
                 location.hash = '#home';
                 navigate('home');
+                showToast(isRegister ? 'Akun berhasil dibuat!' : 'Berhasil masuk sebagai Penyewa.');
             }
-            showToast(role === 'admin' ? 'Akun admin demo berhasil dibuat.' : 'Akun penyewa berhasil dibuat.');
-            return;
-        }
+        })
+        .catch(err => {
+            console.error('Auth Error:', err);
+            showAuthError('Gagal terhubung ke server.');
+        });
 
-        const account = state.accounts.find((item) => item.email.toLowerCase() === email && item.password === password);
-        if (!account || (form.dataset.adminOnly === 'true' && account.role !== 'admin')) {
-            showAuthError('Email atau kata sandi tidak sesuai.');
-            return;
-        }
-        
-        state.session = { email: account.email, name: account.name, role: account.role };
-        writeStorage(STORAGE_KEYS.session, state.session);
-
-        if (account.role === 'admin') {
-            state.adminSection = 'overview';
-            location.hash = '#admin/overview';
-            navigate('admin');
-            showToast('Berhasil masuk sebagai Admin Rental.');
-        } else {
-            location.hash = '#home';
-            navigate('home');
-            showToast('Berhasil masuk sebagai Penyewa.');
-        }
         return;
     }
 
@@ -919,7 +1062,7 @@ app.addEventListener('submit', async (event) => {
         const dateValue = String(values.get('date'));
         const poster = form.elements.poster.files?.[0];
         const paymentProof = form.elements.paymentProof?.files?.[0];
-        const event = {
+        const eventItem = {
             id: `event-${Date.now()}`,
             title,
             date: dateValue ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(`${dateValue}T00:00:00`)) : 'Tanggal belum ditentukan',
@@ -935,7 +1078,7 @@ app.addEventListener('submit', async (event) => {
             description: `Event bertema ${themeText} di ${String(values.get('location')).trim()}.`,
             featured: false,
         };
-        state.events.unshift(event);
+        state.events.unshift(eventItem);
         persistEvents();
         render();
         showToast('Pengajuan demo terkirim untuk ditinjau admin.');
@@ -957,7 +1100,6 @@ app.addEventListener('submit', async (event) => {
         .then(response => {
             showToast(response.message || 'Kostum berhasil disimpan ke database!');
             state.modal = null;
-            // Ambil ulang data katalog terbaru dari database
             return fetch('/api/costumes');
         })
         .then(res => res.json())
@@ -1004,18 +1146,27 @@ if (initialPage && ['home', 'catalog', 'detail', 'rules', 'howto', 'checkout', '
     if (initialPage === 'admin' && initialParam && adminMenu.some(([section]) => section === initialParam)) state.adminSection = initialParam;
 }
 
-// AMBIL DATA REAL DARI DATABASE LARAVEL VIA API
-fetch('/api/costumes')
-    .then(res => res.json())
-    .then(data => {
-        if (data && Array.isArray(data) && data.length > 0) {
-            state.inventory = data;
-            // Set productId ke id kostum pertama di DB (misal ID 1 dari MySQL)
-            state.productId = data[0].id; 
-        }
+Promise.all([
+    fetch('/api/costumes').then(res => res.json()).catch(() => []),
+    fetch('/api/events').then(res => res.json()).catch(() => [])
+]).then(([costumes, events]) => {
+    if (Array.isArray(costumes) && costumes.length > 0) {
+        state.inventory = costumes;
+        state.productId = costumes[0].id;
+    }
+    if (Array.isArray(events) && events.length > 0) {
+        state.events = events;
+    }
+
+    if (state.session?.email) {
+        fetch(`/api/orders?email=${encodeURIComponent(state.session.email)}`)
+            .then(res => res.json())
+            .then(orders => {
+                if (Array.isArray(orders)) state.orders = orders;
+                render();
+            })
+            .catch(() => render());
+    } else {
         render();
-    })
-    .catch(err => {
-        console.error('Gagal mengambil data dari database:', err);
-        render();
-    });
+    }
+});

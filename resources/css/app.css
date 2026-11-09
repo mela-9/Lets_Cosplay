@@ -9,3 +9,183 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+/* ==========================================
+   CHATBOT WIDGET STYLING
+   ========================================== */
+.chat-widget {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+/* Tombol Melayang (Launcher) */
+.chat-launcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #f45193; /* Warna aksen pink Let'sCosplay */
+    color: #ffffff;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(244, 81, 147, 0.4);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.chat-launcher:hover {
+    background: #e03e80;
+    transform: translateY(-2px);
+}
+
+/* Panel Kotak Chat */
+.chat-panel {
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    height: 440px;
+    max-height: calc(100vh - 100px);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 12px;
+    animation: popupChat 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-panel[hidden] {
+    display: none;
+}
+
+@keyframes popupChat {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header Chat */
+.chat-panel header {
+    background: #1e1e24;
+    color: #ffffff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-panel header strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.chat-panel header small {
+    display: block;
+    font-size: 0.75rem;
+    color: #a0a0ab;
+}
+
+.chat-panel header .icon-button {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.chat-panel header .icon-button:hover {
+    opacity: 1;
+}
+
+/* Area Pesan Chat */
+.chat-messages {
+    flex: 1;
+    min-height: 0;
+    padding: 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #c9b8c2 #f1edf0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f9f9fb;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f1edf0;
+    border-radius: 999px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #c9b8c2;
+    border-radius: 999px;
+}
+
+.chat-message {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin: 0;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.chat-message.bot {
+    align-self: flex-start;
+    background: #ffffff;
+    color: #333333;
+    border: 1px solid #e5e5eb;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-message.user {
+    align-self: flex-end;
+    background: #f45193;
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+}
+
+/* Form Input Chat */
+#chat-form {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: #ffffff;
+    border-top: 1px solid #eee;
+}
+
+#chat-form .input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    outline: none;
+}
+
+#chat-form .input:focus {
+    border-color: #f45193;
+}
+
+#chat-form .button {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
