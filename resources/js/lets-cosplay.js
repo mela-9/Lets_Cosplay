@@ -15,14 +15,7 @@ const defaultAccounts = [
     { email: 'adminrental123@gmail.com', password: '12345678910', name: 'Admin Rental', role: 'admin' },
 ];
 
-const seedProducts = [
-    { id: 'c1', name: 'Raiden Shogun', series: 'Genshin Impact', origin: 'Inazuma', category: 'Game', size: ['S', 'M', 'L'], price: 175000, deposit: 87500, stock: 3, rating: 4.9, reviews: 28, tag: 'Terlaris', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cosplay_of_Raiden_Shogun_DSCF1208.jpg/900px-Cosplay_of_Raiden_Shogun_DSCF1208.jpg', imageCredit: 'kxz Chen', imageLicense: 'CC BY-SA 2.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Cosplay_of_Raiden_Shogun_DSCF1208.jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/2.0/', description: 'Cosplay Raiden Shogun dengan palet ungu Inazuma, obi merah, dan detail motif Electro.', accessories: ['Wig ungu', 'Obi dan aksesori rambut', 'Prop pedang foam'], themes: ['game', 'genshin', 'inazuma', 'electro', 'purple'] },
-    { id: 'c2', name: 'Kamado Nezuko', series: 'Demon Slayer: Kimetsu no Yaiba', origin: 'Kimetsu no Yaiba', category: 'Anime', size: ['S', 'M'], price: 120000, deposit: 60000, stock: 4, rating: 4.9, reviews: 34, tag: 'Favorit komunitas', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg/900px-Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_%2852111635324%29.jpg', imageCredit: 'Kiri Karma / Miguel Discart', imageLicense: 'CC BY-SA 2.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Cosplay_of_Nezuko_Kamado_at_Made_in_Asia_2022_(52111635324).jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/2.0/', description: 'Cosplay kimono Nezuko dengan haori gelap, obi merah muda, dan bambu prop.', accessories: ['Haori hitam', 'Obi merah muda', 'Bambu prop'], themes: ['anime', 'kimono', 'japan', 'demon', 'pink'] },
-    { id: 'c3', name: 'Gojo Satoru', series: 'Jujutsu Kaisen', origin: 'Jujutsu High', category: 'Anime', size: ['M', 'L', 'XL'], price: 150000, deposit: 75000, stock: 2, rating: 4.8, reviews: 19, tag: 'Pilihan editor', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Satoru_Goj%C5%8D_cosplay.jpg/720px-Satoru_Goj%C5%8D_cosplay.jpg', imageCredit: 'Solomon203', imageLicense: 'CC BY-SA 4.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Satoru_Goj%C5%8D_cosplay.jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', description: 'Seragam hitam Gojo dengan blindfold dan rambut putih khas penyihir Jujutsu High.', accessories: ['Blindfold hitam', 'Wig putih', 'Jubah seragam'], themes: ['anime', 'jujutsu', 'sorcerer', 'white hair', 'blindfold'] },
-    { id: 'c4', name: 'Hatsune Miku', series: 'Vocaloid', origin: 'Piapro', category: 'Anime', size: ['S', 'M'], price: 135000, deposit: 67500, stock: 3, rating: 4.9, reviews: 22, tag: 'Idol virtual', image: 'https://images.unsplash.com/photo-1722608577993-b8db8a9ce5cf?auto=format&fit=crop&w=900&q=85', imageCredit: 'Adrian Henry / Unsplash', imageLicense: 'Unsplash License', imageCreditUrl: 'https://unsplash.com/photos/a-woman-with-long-blue-hair-wearing-a-mask-01xCwqmzvHo', imageLicenseUrl: 'https://unsplash.com/license', description: 'Cosplay idol virtual dengan wig twin-tail biru toska, dasi dan aksen futuristik.', accessories: ['Wig twin-tail toska', 'Headset Miku', 'Dasi dan arm warmer'], themes: ['vocaloid', 'idol', 'blue hair', 'music', 'virtual'] },
-    { id: 'c5', name: 'Anya Forger', series: 'Spy x Family', origin: 'Eden Academy', category: 'Anime', size: ['XS', 'S'], price: 100000, deposit: 50000, stock: 2, rating: 4.8, reviews: 17, tag: 'Baru', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Anya_forger_cosplay_at_Nippon_Haku_002.jpg/720px-Anya_forger_cosplay_at_Nippon_Haku_002.jpg', imageCredit: 'Pescov', imageLicense: 'CC0 1.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Anya_forger_cosplay_at_Nippon_Haku_002.jpg', imageLicenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/', description: 'Seragam Eden Academy dengan wig merah muda, aksesori tanduk hitam, dan tas sekolah.', accessories: ['Wig merah muda', 'Aksesori tanduk', 'Tas sekolah Eden'], themes: ['spy x family', 'anya', 'school', 'pink hair', 'eden'] },
-    { id: 'c6', name: 'Alhaitham', series: 'Genshin Impact', origin: 'Sumeru', category: 'Game', size: ['M', 'L', 'XL'], price: 160000, deposit: 80000, stock: 1, rating: 4.8, reviews: 14, tag: 'Premium', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Cosplay_Alhaitham_in_Hoyoland_2025_1.jpg/900px-Cosplay_Alhaitham_in_Hoyoland_2025_1.jpg', imageCredit: 'Twotwo2019', imageLicense: 'CC BY-SA 4.0', imageCreditUrl: 'https://commons.wikimedia.org/wiki/File:Cosplay_Alhaitham_in_Hoyoland_2025_1.jpg', imageLicenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/', description: 'Cosplay cendekiawan Sumeru dengan wig hijau, mantel putih-hijau, dan aksesori Akademiya.', accessories: ['Wig hijau', 'Mantel Akademiya', 'Aksesori bahu'], themes: ['game', 'genshin', 'sumeru', 'green hair', 'scholar'] },
-];
+const seedProducts = [];
 
 const seedEvents = [
     { id: 'e1', title: 'Jakarta Cosplay Parade 2026', date: '21 November 2026', location: 'M Bloc Space, Jakarta', theme: 'anime fantasy parade', category: 'Komunitas', tier: 'Gratis', status: 'Disetujui', image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=900&q=85', description: 'Parade kostum dan panggung komunitas untuk semua fandom. Ada mini competition dan photo walk.', featured: true },
@@ -112,7 +105,6 @@ const compressImage = (file) => new Promise((resolve) => {
 });
 const app = document.querySelector('#app');
 
-const storedInventory = readStorage(STORAGE_KEYS.inventory, seedProducts);
 const initialEvents = Array.isArray(window.letsCosplayEvents) ? window.letsCosplayEvents.map((event) => ({
     id: `db-${event.id}`,
     title: event.title,
@@ -148,7 +140,7 @@ const state = {
     trustScore: 55,
     accounts: loadAccounts(),
     session: readStorage(STORAGE_KEYS.session, null),
-    inventory: storedInventory,
+    inventory:[],
     orders: readStorage(STORAGE_KEYS.orders, []),
     events: [...initialEvents, ...readStorage(STORAGE_KEYS.events, seedEvents)],
     eventSearch: { query: '', location: '', tier: '', active: false },
@@ -158,7 +150,9 @@ const state = {
     chatMessages: [],
 };
 
-const productById = (id) => state.inventory.find((product) => product.id === id) || state.inventory[0];
+const productById = (id) => state.inventory.find((product) => product.id === id) || state.inventory[0] || {
+    id: '', name: 'Kostum', price: 0, deposit: 0, image: '', size: ['M'], category: '', series: '', description: '', accessories: [], rating: 5, reviews: 0
+};
 const depositForProduct = (product) => Math.ceil(product.deposit * (state.trustScore >= 85 ? 0.5 : 1));
 const navigate = (page, param = null) => {
     if (state.session?.role === 'admin' && page !== 'admin') { page = 'admin'; param = state.adminSection; }
@@ -859,9 +853,11 @@ app.addEventListener('submit', async (event) => {
         const values = new FormData(form);
         const errorElement = form.querySelector('[data-auth-error]');
         const showAuthError = (message) => {
-            errorElement.textContent = message;
-            errorElement.hidden = false;
-            errorElement.className = 'small auth-error';
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.hidden = false;
+                errorElement.className = 'small auth-error';
+            }
         };
         const email = String(values.get('email')).trim().toLowerCase();
         const password = String(values.get('password'));
@@ -881,7 +877,15 @@ app.addEventListener('submit', async (event) => {
             writeStorage(STORAGE_KEYS.accounts, state.accounts);
             state.session = { email: account.email, name: account.name, role: account.role };
             writeStorage(STORAGE_KEYS.session, state.session);
-            navigate(role === 'admin' ? 'admin' : 'orders');
+            
+            if (role === 'admin') {
+                state.adminSection = 'overview';
+                location.hash = '#admin/overview';
+                navigate('admin');
+            } else {
+                location.hash = '#home';
+                navigate('home');
+            }
             showToast(role === 'admin' ? 'Akun admin demo berhasil dibuat.' : 'Akun penyewa berhasil dibuat.');
             return;
         }
@@ -891,16 +895,21 @@ app.addEventListener('submit', async (event) => {
             showAuthError('Email atau kata sandi tidak sesuai.');
             return;
         }
+        
         state.session = { email: account.email, name: account.name, role: account.role };
         writeStorage(STORAGE_KEYS.session, state.session);
+
         if (account.role === 'admin') {
             state.adminSection = 'overview';
+            location.hash = '#admin/overview';
             navigate('admin');
             showToast('Berhasil masuk sebagai Admin Rental.');
         } else {
-            navigate('orders');
+            location.hash = '#home';
+            navigate('home');
             showToast('Berhasil masuk sebagai Penyewa.');
         }
+        return;
     }
 
     if (formId === 'organizer-form') {
@@ -934,32 +943,30 @@ app.addEventListener('submit', async (event) => {
 
     if (formId === 'product-form') {
         const values = new FormData(form);
-        const id = String(values.get('id')) || `c${Date.now()}`;
-        const product = {
-            id,
-            name: String(values.get('name')).trim(),
-            series: String(values.get('series')).trim(),
-            category: String(values.get('category')),
-            price: Number(values.get('price')),
-            deposit: Number(values.get('deposit')),
-            stock: Number(values.get('stock')),
-            size: String(values.get('size')).split(',').map((size) => size.trim().toUpperCase()).filter(Boolean),
-            image: String(values.get('image')).trim() || seedProducts[0].image,
-            description: String(values.get('description')).trim(),
-            accessories: [],
-            rating: 5,
-            reviews: 0,
-            tag: 'Baru',
-            themes: `${values.get('name')} ${values.get('series')} ${values.get('category')}`.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 3),
-        };
-        const existing = state.inventory.findIndex((item) => item.id === id);
-        if (existing >= 0) state.inventory[existing] = { ...state.inventory[existing], ...product };
-        else state.inventory.unshift(product);
-        state.modal = null;
-        persistInventory();
-        state.adminSection = 'inventory';
-        render();
-        showToast(existing >= 0 ? 'Perubahan kostum tersimpan.' : 'Kostum baru ditambahkan.');
+        const payload = Object.fromEntries(values);
+
+        fetch('/api/costumes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(response => {
+            showToast(response.message || 'Kostum berhasil disimpan ke database!');
+            state.modal = null;
+            // Ambil ulang data katalog terbaru dari database
+            return fetch('/api/costumes');
+        })
+        .then(res => res.json())
+        .then(data => {
+            state.inventory = data;
+            state.adminSection = 'inventory';
+            render();
+        })
+        .catch(err => console.error('Gagal simpan kostum:', err));
     }
 });
 
@@ -996,4 +1003,19 @@ if (initialPage && ['home', 'catalog', 'detail', 'rules', 'howto', 'checkout', '
     state.param = initialParam ? decodeURIComponent(initialParam) : null;
     if (initialPage === 'admin' && initialParam && adminMenu.some(([section]) => section === initialParam)) state.adminSection = initialParam;
 }
-render();
+
+// AMBIL DATA REAL DARI DATABASE LARAVEL VIA API
+fetch('/api/costumes')
+    .then(res => res.json())
+    .then(data => {
+        if (data && Array.isArray(data) && data.length > 0) {
+            state.inventory = data;
+            // Set productId ke id kostum pertama di DB (misal ID 1 dari MySQL)
+            state.productId = data[0].id; 
+        }
+        render();
+    })
+    .catch(err => {
+        console.error('Gagal mengambil data dari database:', err);
+        render();
+    });
