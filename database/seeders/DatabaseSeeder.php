@@ -10,6 +10,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(DemoAccountsSeeder::class);
+        $this->call(CostumeSeeder::class);
+
+        Event::truncate();
 
         // Seed data event dummy.
         Event::create([
