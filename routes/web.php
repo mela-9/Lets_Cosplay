@@ -1,16 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Models\Event;
-use App\Models\Costume;
+use Illuminate\Support\Facades\Route;
 
+// Single Page App: ambil data events dan kirim ke view lets_cosplay
 Route::get('/', function () {
-    // Mengambil data dari SQLite (dengan fallback array kosong jika data belum terisi)
-    $events = class_exists(Event::class) ? Event::all() : [];
-    $costumes = class_exists(Costume::class) ? Costume::all() : [];
-
-    return view('lets_cosplay', [
-        'events' => $events,
-        'costumes' => $costumes,
-    ]);
+    $events = Event::all();
+    return view('lets_cosplay', compact('events'));
 });

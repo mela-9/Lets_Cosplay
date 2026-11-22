@@ -18,6 +18,7 @@ class User extends Authenticatable
         'name', 'email', 'role', 'password',
         'phone', 'address', 'social_platform', 'social_handle', 'guarantor_phone',
         'id_selfie_name', 'id_selfie', 'previous_rental', 'previous_store',
+        'rules_accepted_at', 'id_status', 'id_reviewed_at', 'id_reject_reason',
     ];
 
     protected $hidden = [
@@ -29,6 +30,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'rules_accepted_at' => 'datetime',
+            'id_reviewed_at' => 'datetime',
         ];
     }
 
@@ -83,6 +86,18 @@ class User extends Authenticatable
             'hasIdSelfie' => !empty($this->id_selfie),
             'idSelfieName' => $this->id_selfie_name,
             'trustScore' => $this->trustScore(),
+            'idStatus' => $this->id_status ?: (empty($this->id_selfie) ? 'none' : 'pending'),
+            'idReviewedAt' => optional($this->id_reviewed_at)->translatedFormat('j F Y, H:i'),
+            'idRejectReason' => $this->id_reject_reason,
+            'rulesAcceptedAt' => optional($this->rules_accepted_at)->translatedFormat('j F Y, H:i'),
         ];
+    }
+
+    /** Foto identitas baru/diganti → masuk antrean verifikasi admin lagi. */
+    public function resetIdVerification(): void
+    {
+        $this->id_status = 'pending';
+        $this->id_reviewed_at = null;
+        $this->id_reject_reason = null;
     }
 }

@@ -20,7 +20,7 @@
 <body>
     <div id="app"></div>
     <script>
-        window.letsCosplayEvents = @json($events ?? []);
+        window.letsCosplayEvents = @json($events);
     </script>
 </body>
 </html>

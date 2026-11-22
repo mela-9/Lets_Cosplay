@@ -12,6 +12,7 @@ class OrderController extends Controller
 {
     private const SHIPPING = 18000;
     private const ADDON_PRICE = ['wig' => 35000, 'care' => 15000];
+    private const MAX_UNITS = 50;
 
     /** Admin: semua pesanan (beserta foto dokumen). Penyewa: hanya pesanan miliknya. */
     public function index(Request $request)
@@ -19,7 +20,7 @@ class OrderController extends Controller
         $user = $request->user();
         $isAdmin = $user->role === 'admin';
 
-        $query = Order::query()->latest('id');
+        $query = Order::query()->with(['user:id,id_status', 'review'])->latest('id');
         if (!$isAdmin) {
             $query->where('user_id', $user->id);
         }
@@ -33,7 +34,15 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'productId' => 'required|integer|exists:costumes,id',
-            'size' => 'required|string|max:10',
+            // Banyak ukuran dalam satu pesanan: [{size:'M', qty:2}, {size:'L', qty:1}]
+            'items' => 'required|array|min:1|max:10',
+            'items.*.size' => 'required|string|max:10',
+            'items.*.qty' => 'required|integer|min:1|max:'.self::MAX_UNITS,
+            // Pesanan kelompok (tim / seragam bersama)
+            'isGroup' => 'nullable|boolean',
+            'groupName' => 'nullable|required_if:isGroup,true|string|max:80',
+            'groupMembers' => 'nullable|string|max:2000',
+            'rulesAccepted' => 'nullable|boolean',
             'days' => 'required|integer|min:1|max:7',
             'rentalDate' => 'required|date|after_or_equal:today',
             'addons' => 'nullable|array',
@@ -52,7 +61,33 @@ class OrderController extends Controller
             'idSelfieName' => 'nullable|string|max:150',
         ]);
 
+        // Aturan rental harus sudah disetujui (di halaman Aturan atau lewat centang di checkout).
+        if (!$user->rules_accepted_at) {
+            if (empty($data['rulesAccepted'])) {
+                return response()->json(['message' => 'Setujui Aturan Rental terlebih dahulu.'], 422);
+            }
+            $user->forceFill(['rules_accepted_at' => now()])->save();
+        }
+
+        // Gabungkan ukuran yang dobel, lalu hitung total unit.
+        $items = [];
+        foreach ($data['items'] as $row) {
+            $size = mb_strtoupper(trim($row['size']));
+            $items[$size] = ($items[$size] ?? 0) + (int) $row['qty'];
+        }
+        $items = collect($items)->map(fn ($qty, $size) => ['size' => (string) $size, 'qty' => $qty])->values()->all();
+        $units = array_sum(array_column($items, 'qty'));
+
+        if ($units > self::MAX_UNITS) {
+            return response()->json(['message' => 'Maksimal '.self::MAX_UNITS.' kostum per pesanan.'], 422);
+        }
+        $isGroup = (bool) ($data['isGroup'] ?? false);
+        if ($isGroup && $units < 2) {
+            return response()->json(['message' => 'Pesanan kelompok minimal 2 kostum. Tambah jumlah di pilihan ukuran.'], 422);
+        }
+
         // Lengkapi profil yang masih kosong (akun lama), tanpa menimpa data yang sudah ada.
+        $hadSelfie = !empty($user->id_selfie);
         $user->fill(array_filter([
             'phone' => $user->phone ? null : ($data['phone'] ?? null),
             'social_platform' => $user->social_platform ? null : ($data['socialPlatform'] ?? null),
@@ -61,7 +96,11 @@ class OrderController extends Controller
             'id_selfie' => $user->id_selfie ? null : ($data['idSelfie'] ?? null),
             'id_selfie_name' => $user->id_selfie ? null : ($data['idSelfieName'] ?? null),
             'address' => $user->address ?: $data['address'],
-        ]))->save();
+        ]));
+        if (!$hadSelfie && !empty($user->id_selfie)) {
+            $user->resetIdVerification();
+        }
+        $user->save();
 
         $missing = collect([
             'phone' => 'Nomor telepon', 'social_platform' => 'Media sosial', 'social_handle' => 'Username media sosial',
@@ -72,30 +111,45 @@ class OrderController extends Controller
             return response()->json(['message' => 'Lengkapi data diri: '.$missing->implode(', ').'.'], 422);
         }
 
+        if ($user->id_status === 'rejected') {
+            return response()->json(['message' => 'Verifikasi KTP/identitasmu ditolak admin'.($user->id_reject_reason ? " ({$user->id_reject_reason})" : '').'. Unggah ulang foto di Pengaturan akun.'], 422);
+        }
+
         try {
-            $order = DB::transaction(function () use ($user, $data) {
+            $order = DB::transaction(function () use ($user, $data, $items, $units, $isGroup) {
                 $costume = Costume::lockForUpdate()->findOrFail($data['productId']);
 
-                if ($costume->stock < 1) {
-                    abort(response()->json(['message' => 'Maaf, stok kostum ini sedang habis.'], 422));
-                }
-                if (!in_array($data['size'], $costume->size ?? [], true)) {
-                    abort(response()->json(['message' => 'Ukuran tidak tersedia untuk kostum ini.'], 422));
+                // Stok dicek per ukuran × jumlah.
+                foreach ($items as $item) {
+                    if (!array_key_exists($item['size'], $costume->size_stock ?? [])) {
+                        abort(response()->json(['message' => "Ukuran {$item['size']} tidak tersedia untuk kostum ini."], 422));
+                    }
+                    $left = $costume->stockFor($item['size']);
+                    if ($left < $item['qty']) {
+                        $msg = $left < 1
+                            ? "Maaf, stok ukuran {$item['size']} sedang habis."
+                            : "Stok ukuran {$item['size']} tersisa {$left} unit (kamu memilih {$item['qty']}).";
+                        abort(response()->json(['message' => $msg], 422));
+                    }
                 }
 
                 // Harga dihitung ulang di server; angka dari browser tidak dipercaya.
                 $addons = array_values(array_unique($data['addons'] ?? []));
                 $addonPerDay = array_sum(array_map(fn ($a) => self::ADDON_PRICE[$a], $addons));
                 $trust = $user->trustScore();
-                $deposit = (int) ceil($costume->deposit * ($trust >= 85 ? 0.5 : 1));
-                $total = (int) (($costume->price + $addonPerDay) * $data['days'] + self::SHIPPING + $deposit);
+                $depositEach = (int) ceil($costume->deposit * ($trust >= 85 ? 0.5 : 1));
+                $deposit = $depositEach * $units;
+                $total = (int) (($costume->price + $addonPerDay) * $data['days'] * $units + self::SHIPPING + $deposit);
                 $minDp = (int) ceil($total * 0.5);
 
                 if ($data['dp'] < $minDp || $data['dp'] > $total) {
                     abort(response()->json(['message' => "DP harus antara Rp{$minDp} dan Rp{$total}."], 422));
                 }
 
-                $costume->decrement('stock');
+                foreach ($items as $item) {
+                    $costume->adjustStock($item['size'], -$item['qty']);
+                }
+                $costume->save();
 
                 return Order::create([
                     'order_code' => $this->newCode(),
@@ -110,7 +164,12 @@ class OrderController extends Controller
                     'costume_id' => $costume->id,
                     'costume_name' => $costume->name,
                     'costume_image' => $costume->image,
-                    'size' => $data['size'],
+                    'size' => Order::summarizeItems($items),
+                    'items' => $items,
+                    'quantity' => $units,
+                    'is_group' => $isGroup,
+                    'group_name' => $isGroup ? trim($data['groupName']) : null,
+                    'group_members' => $isGroup ? (trim((string) ($data['groupMembers'] ?? '')) ?: null) : null,
                     'days' => $data['days'],
                     'addons' => $addons,
                     'rental_date' => $data['rentalDate'],
@@ -132,7 +191,7 @@ class OrderController extends Controller
             return $e->getResponse();
         }
 
-        return response()->json(['status' => 'success', 'order' => $order->toFront()], 201);
+        return response()->json(['status' => 'success', 'order' => $order->load(['user:id,id_status', 'review'])->toFront()], 201);
     }
 
     /** Admin: ubah tahap pesanan dan/atau nomor resi. Stok dikembalikan saat pesanan selesai. */
@@ -143,7 +202,16 @@ class OrderController extends Controller
             'trackingNumber' => 'sometimes|nullable|string|max:60',
         ]);
 
-        $order = Order::where('order_code', $code)->firstOrFail();
+        $order = Order::with(['user:id,id_status', 'review'])->where('order_code', $code)->firstOrFail();
+
+        // KTP penyewa harus sudah diverifikasi sebelum pesanan boleh diproses.
+        $targetStage = $data['stage'] ?? null;
+        if (array_key_exists('trackingNumber', $data) && $data['trackingNumber'] && $order->stage < 3) {
+            $targetStage = max((int) $targetStage, 3);
+        }
+        if ($targetStage !== null && $targetStage >= 2 && $order->stage < 2 && $order->user && $order->user->id_status !== 'verified') {
+            return response()->json(['message' => 'Verifikasi KTP penyewa terlebih dahulu (menu Verifikasi KTP) sebelum memproses pesanan.'], 422);
+        }
 
         DB::transaction(function () use ($order, $data) {
             if (array_key_exists('stage', $data)) {

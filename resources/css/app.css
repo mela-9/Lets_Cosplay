@@ -209,11 +209,25 @@
 .chat-suggestions .chip-button:hover { background: #ffe0ec; }
 #chat-form input:disabled, #chat-form button:disabled { opacity: .6; cursor: not-allowed; }
 
+/* Kartu kostum yang direkomendasikan chatbot */
+.chat-cards { display: flex; flex-direction: column; gap: 6px; align-self: flex-start; width: min(86%, 300px); margin-top: -2px; }
+.chat-card { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px 6px 6px; text-align: left; cursor: pointer; color: inherit; font: inherit; border: 1px solid #e5e5eb; border-radius: 12px; background: #ffffff; transition: border-color .15s, box-shadow .15s; }
+.chat-card:hover, .chat-card:focus-visible { border-color: #f3a6c6; box-shadow: 0 2px 8px rgb(244 81 147 / 16%); outline: none; }
+.chat-card img { flex: none; width: 44px; height: 56px; object-fit: cover; border-radius: 8px; background: #f3edf0; }
+.chat-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.chat-card-body strong { font-size: .8125rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-card-body small { font-size: .72rem; color: #7a6b75; }
+.chat-card > .material-symbols-outlined { flex: none; font-size: 20px; color: #d9387b; }
+
 html[data-theme='dark'] .chat-panel { background: #211b25; border-color: #39313e; }
 html[data-theme='dark'] .chat-messages { background: #17131b; scrollbar-color: #4a3f50 #211b25; }
 html[data-theme='dark'] .chat-message.bot { background: #2a232f; color: #f6f3f7; border-color: #39313e; }
 html[data-theme='dark'] #chat-form { background: #211b25; border-top-color: #39313e; }
 html[data-theme='dark'] #chat-form .input { background: #17131b; color: #f6f3f7; border-color: #39313e; }
 html[data-theme='dark'] .chat-suggestions .chip-button { background: #382432; border-color: #5a3a4c; color: #ff9cc5; }
+html[data-theme='dark'] .chat-card { background: #2a232f; border-color: #39313e; }
+html[data-theme='dark'] .chat-card:hover, html[data-theme='dark'] .chat-card:focus-visible { border-color: #8a4a68; }
+html[data-theme='dark'] .chat-card img { background: #17131b; }
+html[data-theme='dark'] .chat-card-body small { color: #b9a9b3; }
 
 .rules-nav a.active { color: var(--pink-deep, #d9387b); background: var(--surface-pink, #fff0f6); }
