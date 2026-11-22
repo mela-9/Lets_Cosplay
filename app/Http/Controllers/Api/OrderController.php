@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    private const SHIPPING = 18000;
+    private const SHIPPING_PALEMBANG = 15000;
+    private const SHIPPING_OUTSIDE = 30000;
     private const ADDON_PRICE = ['wig' => 35000, 'care' => 15000];
     private const MAX_UNITS = 50;
 
@@ -139,7 +140,10 @@ class OrderController extends Controller
                 $trust = $user->trustScore();
                 $depositEach = (int) ceil($costume->deposit * ($trust >= 85 ? 0.5 : 1));
                 $deposit = $depositEach * $units;
-                $total = (int) (($costume->price + $addonPerDay) * $data['days'] * $units + self::SHIPPING + $deposit);
+                $shipping = str_contains(mb_strtolower($data['address']), 'palembang')
+                    ? self::SHIPPING_PALEMBANG
+                    : self::SHIPPING_OUTSIDE;
+                $total = (int) (($costume->price + $addonPerDay) * $data['days'] * $units + $shipping + $deposit);
                 $minDp = (int) ceil($total * 0.5);
 
                 if ($data['dp'] < $minDp || $data['dp'] > $total) {

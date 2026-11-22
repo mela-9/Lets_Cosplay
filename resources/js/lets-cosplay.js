@@ -287,15 +287,23 @@ const cartItems = (product) => { syncCart(product); return Object.entries(state.
 const cartUnits = (product) => cartItems(product).reduce((sum, item) => sum + item.qty, 0);
 const cartSizeLabel = (product) => cartItems(product).map((item) => `${item.size}×${item.qty}`).join(', ') || '-';
 // Harga dihitung per unit kostum; rumus sama dengan server.
-const orderPricing = (product) => {
+const shippingForAddress = (address = '') => {
+    const clean = String(address || '').trim().toLowerCase();
+    if (!clean) return { cost: 15000, label: 'Ongkir default (Kota Palembang)' };
+    if (clean.includes('palembang')) return { cost: 15000, label: 'Ongkir Dalam Kota Palembang' };
+    return { cost: 30000, label: 'Ongkir Luar Palembang (Sumbagsel & Jawa)' };
+};
+
+const orderPricing = (product, address = state.session?.address || '') => {
     const units = cartUnits(product);
     const addonPerDay = state.addons.reduce((sum, addon) => sum + (ADDON_PRICE[addon] || 0), 0);
     const rent = product.price * state.days * units;
     const addons = addonPerDay * state.days * units;
-    const shipping = 18000;
+    const ship = shippingForAddress(address);
+    const shipping = ship.cost;
     const depositEach = depositForProduct(product);
     const deposit = depositEach * units;
-    return { units, rent, addons, subtotal: rent + addons, shipping, depositEach, deposit, total: rent + addons + shipping + deposit };
+    return { units, rent, addons, subtotal: rent + addons, shipping, shippingLabel: ship.label, depositEach, deposit, total: rent + addons + shipping + deposit };
 };
 const rulesAccepted = () => Boolean(state.session?.rulesAcceptedAt || state.rulesLocal);
 const stars = (rating) => `<span class="stars" aria-label="${rating} dari 5 bintang">${[1, 2, 3, 4, 5].map((n) => icon('star', n <= Math.round(rating) ? 'filled' : '')).join('')}</span>`;
@@ -483,7 +491,7 @@ const renterSection = () => {
         ${me.socialHandle ? locked('social-handle', 'Username akun', me.socialHandle) : '<div class="field"><label for="social-handle">Username akun *</label><input class="input" id="social-handle" name="socialHandle" required placeholder="@username"></div>'}
         ${me.guarantor ? locked('guarantor-phone', 'Nomor telepon penjamin', me.guarantor) : '<div class="field"><label for="guarantor-phone">Nomor telepon penjamin *</label><input class="input" id="guarantor-phone" name="guarantor" required type="tel" placeholder="Nomor keluarga/kerabat"></div>'}
         ${me.hasIdSelfie ? locked('id-selfie-ok', 'Foto selfie identitas', 'Sudah terverifikasi di akun') : '<div class="field"><label for="id-selfie">Foto selfie memegang identitas *</label><input class="input" id="id-selfie" name="idSelfie" type="file" accept="image/*" required></div>'}
-        <div class="field span-2"><label for="renter-address">Alamat lengkap pengiriman *</label><textarea class="textarea" id="renter-address" name="address" required minlength="10" autocomplete="street-address" placeholder="Jalan, nomor rumah, RT/RW, kecamatan, kota, kode pos">${escapeHtml(me.address || '')}</textarea><small class="muted">Terisi dari alamat akunmu. Ubah jika kostum dikirim ke tempat lain — hanya untuk pesanan ini.</small></div>
+        <div class="field span-2"><label for="renter-address">Alamat lengkap pengiriman *</label><textarea class="textarea" id="renter-address" name="address" required minlength="10" autocomplete="street-address" placeholder="Jalan, nomor rumah, RT/RW, kecamatan, kota, kode pos">${escapeHtml(me.address || '')}</textarea><small class="muted">Default Kota Palembang Rp15.000; luar Palembang (Sumbagsel &amp; Jawa) Rp30.000. Ongkir otomatis menyesuaikan alamat di atas.</small></div>
     </div></section>`;
 };
 
@@ -1138,7 +1146,8 @@ const render = () => {
 
 const checkoutTotals = () => {
     const product = { ...productById(state.productId) };
-    const pr = orderPricing(product);
+    const currentAddress = app.querySelector('#renter-address')?.value ?? state.session?.address ?? '';
+    const pr = orderPricing(product, currentAddress);
     return { product, pr, total: pr.total };
 };
 
@@ -1148,21 +1157,28 @@ const updateCheckoutSummary = () => {
     const { pr, total } = checkoutTotals();
     const subtotal = pr.subtotal;
     const minimumDp = Math.ceil(total * 0.5);
+    const isFull = app.querySelector('input[name="paymentScheme"]:checked')?.value === 'full';
     for (const row of app.querySelectorAll('.price-line')) {
-        const label = row.querySelector('span')?.textContent?.trim();
+        const labelEl = row.querySelector('span');
+        const label = labelEl?.textContent?.trim();
         const amount = row.querySelector('strong');
         if (!amount) continue;
+        if (label?.startsWith('Ongkir') || label === 'Pengiriman') {
+            labelEl.textContent = pr.shippingLabel;
+            amount.textContent = money(pr.shipping);
+        }
         if (label === 'Deposit refundable' || label === 'Deposit') amount.textContent = money(pr.deposit);
         if (label === 'Total estimasi' || label === 'Total') amount.textContent = money(total);
         if (label === 'Subtotal sewa dan aksesori') amount.textContent = money(subtotal);
     }
     const paymentAmount = app.querySelector('#payment-amount');
     if (paymentAmount) {
-        paymentAmount.min = String(minimumDp);
+        const targetVal = isFull ? total : minimumDp;
+        paymentAmount.min = String(targetVal);
         paymentAmount.max = String(total);
-        if (Number(paymentAmount.value) < minimumDp) paymentAmount.value = String(minimumDp);
+        if (isFull || Number(paymentAmount.value) < minimumDp) paymentAmount.value = String(targetVal);
         const note = paymentAmount.nextElementSibling;
-        if (note) note.textContent = `Minimal ${money(minimumDp)} · maksimal ${money(total)}`;
+        if (note) note.textContent = `Minimal ${money(targetVal)} · maksimal ${money(total)}`;
     }
     const notice = app.querySelector('#checkout-form .checkout-sections > .form-section:nth-child(4) .notice');
     if (notice) notice.innerHTML = `Minimum DP 50%: <strong>${money(minimumDp)}</strong>. Sisa <strong>${money(total - minimumDp)}</strong> dibayarkan paling lambat H-1 sebelum pengiriman.`;
@@ -1809,7 +1825,8 @@ app.addEventListener('click', (event) => {
 
 app.addEventListener('input', (event) => {
     if (event.target.matches('[data-group-field]')) state.group[event.target.dataset.groupField] = event.target.value;
-    if (event.target.matches('#fit-height, #fit-weight, #fit-notes, #previous-store')) updateAIAssistant();
+    if (event.target.matches('#fit-height, #fit-weight, #fit-notes, #previous-store, #renter-address')) updateAIAssistant();
+    if (event.target.matches('#renter-address')) updateCheckoutSummary();
     if (event.target.matches('[data-action="price-range"]')) {
         state.maxPrice = Number(event.target.value);
         event.target.nextElementSibling.textContent = `Maks. ${money(state.maxPrice)}`;
