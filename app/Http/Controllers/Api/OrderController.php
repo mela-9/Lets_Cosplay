@@ -7,6 +7,7 @@ use App\Models\Costume;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -35,11 +36,9 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'productId' => 'required|integer|exists:costumes,id',
-            // Banyak ukuran dalam satu pesanan: [{size:'M', qty:2}, {size:'L', qty:1}]
             'items' => 'required|array|min:1|max:10',
             'items.*.size' => 'required|string|max:10',
             'items.*.qty' => 'required|integer|min:1|max:'.self::MAX_UNITS,
-            // Pesanan kelompok (tim / seragam bersama)
             'isGroup' => 'nullable|boolean',
             'groupName' => 'nullable|required_if:isGroup,true|string|max:80',
             'groupMembers' => 'nullable|string|max:2000',
@@ -50,10 +49,9 @@ class OrderController extends Controller
             'addons.*' => 'in:wig,care',
             'dp' => 'required|integer|min:0',
             'paymentMethod' => 'required|in:Transfer bank,E-wallet',
-            'address' => 'required|string|min:10|max:500',     // satu-satunya data yang boleh berbeda dari profil
+            'address' => 'required|string|min:10|max:500',
             'paymentProofName' => 'nullable|string|max:150',
             'paymentProofImage' => ['required', 'string', 'max:3500000', 'regex:/^data:image\/(jpeg|png|webp);base64,/'],
-            // Hanya dipakai untuk melengkapi akun lama yang profilnya belum lengkap:
             'phone' => ['nullable', 'regex:/^\+?[0-9]{9,15}$/'],
             'socialPlatform' => 'nullable|in:Instagram,TikTok,X,Lainnya',
             'socialHandle' => 'nullable|string|max:60',
@@ -62,7 +60,6 @@ class OrderController extends Controller
             'idSelfieName' => 'nullable|string|max:150',
         ]);
 
-        // Aturan rental harus sudah disetujui (di halaman Aturan atau lewat centang di checkout).
         if (!$user->rules_accepted_at) {
             if (empty($data['rulesAccepted'])) {
                 return response()->json(['message' => 'Setujui Aturan Rental terlebih dahulu.'], 422);
@@ -70,7 +67,6 @@ class OrderController extends Controller
             $user->forceFill(['rules_accepted_at' => now()])->save();
         }
 
-        // Gabungkan ukuran yang dobel, lalu hitung total unit.
         $items = [];
         foreach ($data['items'] as $row) {
             $size = mb_strtoupper(trim($row['size']));
@@ -87,7 +83,6 @@ class OrderController extends Controller
             return response()->json(['message' => 'Pesanan kelompok minimal 2 kostum. Tambah jumlah di pilihan ukuran.'], 422);
         }
 
-        // Lengkapi profil yang masih kosong (akun lama), tanpa menimpa data yang sudah ada.
         $hadSelfie = !empty($user->id_selfie);
         $user->fill(array_filter([
             'phone' => $user->phone ? null : ($data['phone'] ?? null),
@@ -120,7 +115,6 @@ class OrderController extends Controller
             $order = DB::transaction(function () use ($user, $data, $items, $units, $isGroup) {
                 $costume = Costume::lockForUpdate()->findOrFail($data['productId']);
 
-                // Stok dicek per ukuran × jumlah.
                 foreach ($items as $item) {
                     if (!array_key_exists($item['size'], $costume->size_stock ?? [])) {
                         abort(response()->json(['message' => "Ukuran {$item['size']} tidak tersedia untuk kostum ini."], 422));
@@ -134,7 +128,6 @@ class OrderController extends Controller
                     }
                 }
 
-                // Harga dihitung ulang di server; angka dari browser tidak dipercaya.
                 $addons = array_values(array_unique($data['addons'] ?? []));
                 $addonPerDay = array_sum(array_map(fn ($a) => self::ADDON_PRICE[$a], $addons));
                 $trust = $user->trustScore();
@@ -198,29 +191,45 @@ class OrderController extends Controller
         return response()->json(['status' => 'success', 'order' => $order->load(['user:id,id_status', 'review'])->toFront()], 201);
     }
 
-    /** Admin: ubah tahap pesanan dan/atau nomor resi. Stok dikembalikan saat pesanan selesai. */
+    /** Admin: ubah tahap pesanan, jadwal kirim, tunda kirim, dan/atau nomor resi. */
     public function update(Request $request, string $code)
     {
         $data = $request->validate([
             'stage' => 'sometimes|integer|min:0|max:7',
             'trackingNumber' => 'sometimes|nullable|string|max:60',
+            'estimatedShipDate' => 'sometimes|nullable|date',
+            'shippingHoldReason' => 'sometimes|nullable|string|max:255',
         ]);
 
         $order = Order::with(['user:id,id_status', 'review'])->where('order_code', $code)->firstOrFail();
+        $isPaidOff = ($order->dp >= $order->total) || !empty($order->final_payment_proof_image);
 
-        // KTP penyewa harus sudah diverifikasi sebelum pesanan boleh diproses.
         $targetStage = $data['stage'] ?? null;
         if (array_key_exists('trackingNumber', $data) && $data['trackingNumber'] && $order->stage < 3) {
             $targetStage = max((int) $targetStage, 3);
         }
+
         if ($targetStage !== null && $targetStage >= 2 && $order->stage < 2 && $order->user && $order->user->id_status !== 'verified') {
             return response()->json(['message' => 'Verifikasi KTP penyewa terlebih dahulu (menu Verifikasi KTP) sebelum memproses pesanan.'], 422);
         }
 
+        if ($targetStage !== null && $targetStage >= 3 && !$isPaidOff) {
+            return response()->json(['message' => 'Pembayaran belum lunas! Gunakan "Tunda Kirim" sampai penyewa mengunggah bukti pelunasan.'], 422);
+        }
+
         DB::transaction(function () use ($order, $data) {
+            if (array_key_exists('estimatedShipDate', $data)) {
+                $order->estimated_ship_date = $data['estimatedShipDate'];
+            }
+            if (array_key_exists('shippingHoldReason', $data)) {
+                $order->shipping_hold_reason = $data['shippingHoldReason'] ?: null;
+            }
             if (array_key_exists('stage', $data)) {
                 $order->stage = $data['stage'];
                 $order->bucket = Order::bucketForStage($data['stage']);
+                if ($data['stage'] >= 3) {
+                    $order->shipping_hold_reason = null;
+                }
                 if ($data['stage'] >= 7) {
                     $order->releaseStock();
                 }
@@ -230,12 +239,131 @@ class OrderController extends Controller
                 if ($data['trackingNumber'] && $order->stage < 3) {
                     $order->stage = 3;
                     $order->bucket = Order::bucketForStage(3);
+                    $order->shipping_hold_reason = null;
                 }
             }
             $order->save();
         });
 
         return response()->json(['status' => 'success', 'order' => $order->toFront(true)]);
+    }
+
+    /** Penyewa: unggah bukti pelunasan sisa tagihan DP. */
+    public function settle(Request $request, string $code)
+    {
+        $user = $request->user();
+        $order = Order::with(['user:id,id_status', 'review'])
+            ->where('order_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        if ($order->dp >= $order->total) {
+            return response()->json(['message' => 'Pesanan ini sudah dibayar lunas sejak awal.'], 422);
+        }
+
+        $data = $request->validate([
+            'paymentMethod' => 'required|in:Transfer bank,E-wallet',
+            'proofName' => 'nullable|string|max:150',
+            'proofImage' => ['required', 'string', 'max:3500000', 'regex:/^data:image\/(jpeg|png|webp);base64,/'],
+        ]);
+
+        $order->forceFill([
+            'final_payment_method' => $data['paymentMethod'],
+            'final_payment_proof_name' => $data['proofName'] ?? null,
+            'final_payment_proof_image' => $data['proofImage'],
+            'final_paid_at' => now(),
+        ])->save();
+
+        return response()->json([
+            'status' => 'success',
+            'order' => $order->toFront(),
+        ]);
+    }
+
+    /** Penyewa: input nomor resi & foto bukti pengembalian kostum. */
+    public function submitReturn(Request $request, string $code)
+    {
+        $user = $request->user();
+        $order = Order::with(['user:id,id_status', 'review'])
+            ->where('order_code', $code)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        if ($order->stage < 5) {
+            return response()->json(['message' => 'Kostum belum diterima, pengembalian belum bisa dicatat.'], 422);
+        }
+
+        $data = $request->validate([
+            'returnTrackingNumber' => 'required|string|min:4|max:60',
+            'returnProofName' => 'nullable|string|max:150',
+            'returnProofImage' => ['required', 'string', 'max:3500000', 'regex:/^data:image\/(jpeg|png|webp);base64,/'],
+        ]);
+
+        $order->forceFill([
+            'return_tracking_number' => trim($data['returnTrackingNumber']),
+            'return_proof_name' => $data['returnProofName'] ?? null,
+            'return_proof_image' => $data['returnProofImage'],
+            'returned_at' => now(),
+            'stage' => max((int) $order->stage, 6),
+            'bucket' => Order::bucketForStage(max((int) $order->stage, 6)),
+        ])->save();
+
+        return response()->json([
+            'status' => 'success',
+            'order' => $order->toFront(),
+        ]);
+    }
+
+    /** Publik/Penyewa & Admin: ambil daftar rekening bank, e-wallet, & alamat retur toko. */
+    public function paymentAccounts()
+    {
+        $default = [
+            'bank' => [
+                ['provider' => 'BCA', 'number' => '8530123456', 'holder' => 'LetsCosplay Studio'],
+                ['provider' => 'Mandiri', 'number' => '1120098765432', 'holder' => 'LetsCosplay Studio'],
+            ],
+            'ewallet' => [
+                ['provider' => 'DANA / GoPay / OVO', 'number' => '081278901234', 'holder' => 'LetsCosplay Palembang'],
+            ],
+            'returnAddress' => [
+                'recipient' => 'LetsCosplay Studio',
+                'phone' => '081278901234',
+                'address' => 'Palembang, Sumatera Selatan',
+            ],
+        ];
+
+        if (Storage::disk('local')->exists('payment-accounts.json')) {
+            $saved = json_decode(Storage::disk('local')->get('payment-accounts.json'), true);
+            if (is_array($saved)) {
+                $saved['returnAddress'] = array_merge($default['returnAddress'], $saved['returnAddress'] ?? []);
+                return response()->json($saved);
+            }
+        }
+
+        return response()->json($default);
+    }
+
+    /** Admin: simpan perubahan rekening bank, e-wallet, & alamat retur toko. */
+    public function updatePaymentAccounts(Request $request)
+    {
+        $data = $request->validate([
+            'bank' => 'required|array|min:1|max:5',
+            'bank.*.provider' => 'required|string|max:40',
+            'bank.*.number' => 'required|string|max:40',
+            'bank.*.holder' => 'required|string|max:80',
+            'ewallet' => 'required|array|min:1|max:5',
+            'ewallet.*.provider' => 'required|string|max:40',
+            'ewallet.*.number' => 'required|string|max:40',
+            'ewallet.*.holder' => 'required|string|max:80',
+            'returnAddress' => 'required|array',
+            'returnAddress.recipient' => 'required|string|max:80',
+            'returnAddress.phone' => 'required|string|max:30',
+            'returnAddress.address' => 'required|string|max:300',
+        ]);
+
+        Storage::disk('local')->put('payment-accounts.json', json_encode($data, JSON_PRETTY_PRINT));
+
+        return response()->json(['status' => 'success', 'accounts' => $data]);
     }
 
     private function newCode(): string

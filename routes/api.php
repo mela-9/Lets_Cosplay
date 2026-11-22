@@ -44,10 +44,15 @@ Route::middleware(['token', 'role:admin'])->group(function () {
 });
 
 // ---- Orders ----
+// ---- Orders & Payment Accounts ----
+Route::get('/payment-accounts', [OrderController::class, 'paymentAccounts']);
 Route::middleware('token')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store'])->middleware('role:customer');
+    Route::post('/orders/{code}/settle', [OrderController::class, 'settle'])->middleware('role:customer');
+    Route::post('/orders/{code}/return', [OrderController::class, 'submitReturn'])->middleware('role:customer');
     Route::patch('/orders/{code}', [OrderController::class, 'update'])->middleware('role:admin');
+    Route::put('/payment-accounts', [OrderController::class, 'updatePaymentAccounts'])->middleware('role:admin');
 
     // Ulasan: penyewa menulis, penjual (admin) membalas
     Route::post('/orders/{code}/review', [ReviewController::class, 'store'])->middleware('role:customer');

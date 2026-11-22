@@ -181,6 +181,10 @@ const state = {
     modalImages: [],
     chartPeriod: 'all',
     chartMetric: 'units',
+    // Rekening / e-wallet tujuan pembayaran toko (dikelola admin)
+    paymentAccounts: { bank: [], ewallet: [], returnAddress: { recipient: '', phone: '', address: '' } },
+    paymentDraft: null,
+    adminOrderFilter: 'Semua',
 };
 
 const api = async (path, { method = 'GET', body } = {}) => {
@@ -254,7 +258,57 @@ const loadOrders = async () => {
     if (!state.session?.token) { state.orders = []; return; }
     try { state.orders = await api('/orders'); } catch { /* biarkan */ }
 };
-const refreshAll = () => Promise.all([loadCatalog(), loadEvents(), loadOrders()]);
+// ---- Rekening bank / e-wallet toko ----
+const MAX_PAYMENT_ROWS = 5;
+const normalizePaymentRows = (rows) => (Array.isArray(rows) ? rows : []).map((row) => ({
+    provider: String(row?.provider ?? '').trim(),
+    number: String(row?.number ?? '').trim(),
+    holder: String(row?.holder ?? '').trim(),
+}));
+const normalizeReturnAddress = (value) => ({
+    recipient: String(value?.recipient ?? '').trim(),
+    phone: String(value?.phone ?? '').trim(),
+    address: String(value?.address ?? '').trim(),
+});
+const normalizePaymentAccounts = (data) => ({ bank: normalizePaymentRows(data?.bank), ewallet: normalizePaymentRows(data?.ewallet), returnAddress: normalizeReturnAddress(data?.returnAddress) });
+const copyReturnAddress = () => {
+    const { recipient, phone, address } = state.paymentAccounts.returnAddress || {};
+    const text = [recipient, phone, address].filter(Boolean).join('\n');
+    if (!text) { showToast('Alamat retur belum diatur admin.'); return; }
+    try { navigator.clipboard?.writeText(text)?.catch?.(() => {}); } catch { /* abaikan */ }
+    showToast('Alamat retur disalin.');
+};
+const returnAddressMarkup = () => {
+    const { recipient, phone, address } = state.paymentAccounts.returnAddress || {};
+    if (!recipient && !phone && !address) return `<div class="deposit-note" style="margin-top:12px">${icon('warning')} Alamat tujuan retur belum diatur admin. Hubungi admin sebelum mengirim paket.</div>`;
+    return `<div class="payment-account" style="margin-top:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px solid rgba(128,128,128,.35);border-radius:12px"><div><strong class="small">${icon('location_on')} Alamat Tujuan Pengembalian</strong><div><strong>${escapeHtml(recipient)}</strong></div><div class="small">${escapeHtml(phone)}</div><div class="small" style="white-space:pre-line">${escapeHtml(address)}</div></div><button class="button button-soft button-small" type="button" data-action="copy-return-address">${icon('content_copy')} Salin Alamat</button></div>`;
+};
+const loadPaymentAccounts = async () => {
+    try {
+        state.paymentAccounts = normalizePaymentAccounts(await api('/payment-accounts'));
+    } catch { /* rekening tetap seperti sebelumnya */ }
+};
+const refreshAll = () => Promise.all([loadCatalog(), loadEvents(), loadOrders(), loadPaymentAccounts()]);
+// Nilai radio bisa "Dompet digital" karena localizeCopy() mengganti teks "E-wallet" di markup halaman.
+const paymentKind = (method) => {
+    const value = String(method || '').trim();
+    if (value === 'Transfer bank') return 'bank';
+    if (value === 'E-wallet' || value === 'Dompet digital') return 'ewallet';
+    return '';
+};
+const paymentMethodLabel = (method) => (paymentKind(method) === 'ewallet' ? 'E-wallet' : paymentKind(method) === 'bank' ? 'Transfer bank' : String(method || ''));
+const paymentDestinationMarkup = (method) => {
+    const kind = paymentKind(method);
+    if (!kind) return '<p class="muted small" style="margin:0">Pilih metode pembayaran untuk melihat tujuan transfer.</p>';
+    const heading = kind === 'bank' ? 'Rekening bank tujuan' : 'E-wallet tujuan';
+    const accounts = state.paymentAccounts[kind].filter((account) => account.provider || account.number);
+    if (!accounts.length) return `<p class="muted small" style="margin:0">${heading} belum tersedia. Silakan hubungi admin sebelum membayar.</p>`;
+    return `<strong class="small">${icon(kind === 'bank' ? 'account_balance' : 'account_balance_wallet')} ${heading}</strong>${accounts.map((account) => `<div class="payment-account" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px solid rgba(128,128,128,.35);border-radius:12px"><div><strong>${escapeHtml(account.provider)}</strong><div class="small" style="letter-spacing:.04em">${escapeHtml(account.number)}</div><small class="muted">a.n. ${escapeHtml(account.holder)}</small></div><button class="button button-soft button-small" type="button" data-action="copy-account" data-number="${escapeHtml(account.number)}" aria-label="Salin nomor ${escapeHtml(account.provider)}">${icon('content_copy')} Salin</button></div>`).join('')}`;
+};
+const copyAccountNumber = (number) => {
+    try { navigator.clipboard?.writeText(String(number || ''))?.catch?.(() => {}); } catch { /* abaikan */ }
+    showToast('Nomor disalin.');
+};
 const imageStockLine = (product) => product.stock > 0 ? `Stok ${product.stock}` : 'Stok habis';
 
 const priceCeiling = () => Math.max(200000, ...state.inventory.map((item) => Math.ceil(item.price / 5000) * 5000));
@@ -508,8 +562,8 @@ const checkoutPage = () => {
         <section class="form-section"><h2><span class="section-index">1</span> Kostum yang dipesan</h2><div class="readonly-product"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(product.name)}</h3><span class="muted small">Ukuran ${escapeHtml(cartSizeLabel(product))} · ${pr.units} kostum · ${state.days} hari · mulai ${escapeHtml(formatDate(state.rentalDate))} · ${state.addons.length} aksesori tambahan</span><p class="small"><button type="button" class="text-button" data-go="detail" data-id="${escapeHtml(product.id)}">Ubah ukuran / jumlah</button></p></div></div>
         <div class="group-box"><label class="checkline"><input type="checkbox" name="isGroup" data-group-toggle ${state.group.enabled ? 'checked' : ''}> <span><strong>Pesanan kelompok / tim</strong><br>Untuk seragam bersama, mis. angkatan sekolah, tim lomba, atau komunitas. Minimal 2 kostum.</span></label><div class="group-fields" ${state.group.enabled ? '' : 'hidden'}><div class="field"><label for="group-name">Nama kelompok / tim *</label><input class="input" id="group-name" name="groupName" data-group-field="name" maxlength="80" placeholder="Contoh: XII IPA 2 SMA Negeri 1" value="${escapeHtml(state.group.name)}" ${state.group.enabled ? 'required' : ''}></div><div class="field"><label for="group-members">Daftar anggota &amp; ukuran (opsional)</label><textarea class="textarea" id="group-members" name="groupMembers" data-group-field="members" maxlength="2000" placeholder="Satu baris per anggota, contoh:&#10;Ani - M&#10;Budi - L">${escapeHtml(state.group.members)}</textarea></div><small class="muted">Jumlah dan ukuran mengikuti pilihan di halaman detail (${escapeHtml(cartSizeLabel(product))}).</small></div></div></section>
         ${renterSection()}
-        <section class="form-section"><h2><span class="section-index">3</span> Rincian pembayaran</h2><div class="price-line"><span>Subtotal sewa dan aksesori</span><strong>${money(subtotal)}</strong></div><div class="price-line"><span>Pengiriman</span><strong>${money(shipping)}</strong></div><div class="price-line"><span>Deposit refundable</span><strong>${money(pr.deposit)}</strong></div><div class="price-line total"><span>Total estimasi</span><strong>${money(total)}</strong></div><div class="notice" style="margin-top:14px">Minimum DP 50%: <strong>${money(minimumDp)}</strong>. Sisa <strong>${money(balance)}</strong> dibayarkan paling lambat H-1 sebelum pengiriman.</div><div class="field" style="margin-top:14px"><label for="payment-amount">Jumlah DP yang dibayar *</label><input class="input" id="payment-amount" name="paymentAmount" type="number" min="${minimumDp}" max="${total}" step="1000" value="${minimumDp}" required><small class="muted">Minimal ${money(minimumDp)} · maksimal ${money(total)}</small></div></section>
-        <section class="form-section"><h2><span class="section-index">4</span> Bukti pembayaran</h2><div class="payment-choice"><label><input type="radio" name="paymentMethod" value="Transfer bank" required> Transfer bank<br><small class="muted">BCA · BNI · Mandiri</small></label><label><input type="radio" name="paymentMethod" value="E-wallet" required> E-wallet<br><small class="muted">GoPay · OVO · DANA</small></label></div><div class="field" style="margin-top:14px"><label for="payment-proof">Unggah bukti transfer *</label><input class="input" id="payment-proof" name="paymentProof" type="file" accept="image/*" required><small class="muted">JPG atau PNG, maksimal 5 MB.</small></div></section>
+        <section class="form-section"><h2><span class="section-index">3</span> Rincian pembayaran</h2><div class="price-line"><span>Subtotal sewa dan aksesori</span><strong>${money(subtotal)}</strong></div><div class="price-line"><span>Pengiriman</span><strong>${money(shipping)}</strong></div><div class="price-line"><span>Deposit refundable</span><strong>${money(pr.deposit)}</strong></div><div class="price-line total"><span>Total estimasi</span><strong>${money(total)}</strong></div><div class="notice" style="margin-top:14px">Minimum DP 50%: <strong>${money(minimumDp)}</strong>. Sisa <strong>${money(balance)}</strong> dibayarkan paling lambat H-1 sebelum pengiriman.</div><div class="payment-choice" style="margin-top:14px"><label><input type="radio" name="paymentScheme" value="dp" checked> Bayar DP (min. 50%)<br><small class="muted">Sisa dilunasi paling lambat H-1 pengiriman</small></label><label><input type="radio" name="paymentScheme" value="full"> Bayar Lunas Sekarang (100%)<br><small class="muted">Tanpa sisa tagihan</small></label></div><div class="field" style="margin-top:14px"><label for="payment-amount">Jumlah DP yang dibayar *</label><input class="input" id="payment-amount" name="paymentAmount" type="number" min="${minimumDp}" max="${total}" step="1000" value="${minimumDp}" required><small class="muted">Minimal ${money(minimumDp)} · maksimal ${money(total)}</small></div></section>
+        <section class="form-section"><h2><span class="section-index">4</span> Bukti pembayaran</h2><div class="payment-choice"><label><input type="radio" name="paymentMethod" value="Transfer bank" required> Transfer bank<br><small class="muted">BCA · BNI · Mandiri</small></label><label><input type="radio" name="paymentMethod" value="E-wallet" required> E-wallet<br><small class="muted">GoPay · OVO · DANA</small></label></div><div class="payment-destination" data-payment-destination style="margin-top:14px;display:grid;gap:10px" aria-live="polite">${paymentDestinationMarkup('')}</div><div class="field" style="margin-top:14px"><label for="payment-proof">Unggah bukti transfer *</label><input class="input" id="payment-proof" name="paymentProof" type="file" accept="image/*" required><small class="muted">JPG atau PNG, maksimal 5 MB.</small></div></section>
         <section class="form-section"><h2><span class="section-index">5</span> Persetujuan</h2><label class="checkline"><input type="checkbox" name="agree" required ${rulesAccepted() ? 'checked' : ''}> Saya menyetujui <a class="text-button" href="#rules" data-go="rules">Aturan rental</a>, penggunaan deposit, dan jadwal pengembalian kostum.</label><div class="notice" style="margin-top:13px">Dokumen identitas dan bukti pembayaran hanya dilihat admin untuk keperluan verifikasi pesanan ini.</div></section>
     </div><aside class="sticky-summary"><h2>Ringkasan pesanan</h2><div class="price-line"><span>Kostum (${pr.units}×)</span><strong>${money(product.price * state.days * pr.units)}</strong></div>${addOnTotal ? `<div class="price-line"><span>Aksesori tambahan</span><strong>${money(addOnTotal)}</strong></div>` : ''}<div class="price-line"><span>Pengiriman</span><strong>${money(shipping)}</strong></div><div class="price-line"><span>Deposit</span><strong>${money(pr.deposit)}</strong></div><div class="price-line total"><span>Total</span><strong>${money(total)}</strong></div><div class="deposit-note">${icon('verified_user')} Deposit refundable setelah kostum retur dan lolos pemeriksaan.</div><button class="button button-primary" type="submit" style="width:100%;margin-top:16px">Kirim pesanan ${icon('arrow_forward')}</button><p class="muted small">Pesanan tersimpan di akunmu dan bisa dilacak di menu Pesanan saya.</p></aside></div></form></div>`;
 };
@@ -533,6 +587,36 @@ const orderQtyLabel = (order) => `${order.quantity > 1 ? `${order.quantity} kost
 const stageForOrder = (order) => order.stage ?? 0;
 const orderProduct = (order) => state.inventory.find((item) => String(item.id) === String(order.productId))
     || { id: order.productId, name: order.productName || 'Kostum', image: order.productImage || '', price: 0, deposit: 0, size: [order.size], category: '', series: '', accessories: [], rating: 5, reviews: 0 };
+const orderPaymentStatus = (order) => (order.isPaidOff
+    ? `<span class="status-pill success">${icon('check_circle', 'filled')} Lunas</span>${order.finalPaidAt ? ` <span class="muted small">Dilunasi ${escapeHtml(order.finalPaidAt)}</span>` : ''}`
+    : `<span class="status-pill">${icon('payments')} Belum lunas</span> <span>Sisa tagihan <strong>${money(Number(order.remainingAmount || 0))}</strong></span>`);
+const addDaysToDate = (value, amount) => {
+    if (!value) return '';
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return '';
+    date.setDate(date.getDate() + amount);
+    return toDateValue(date);
+};
+// Jatuh tempo retur = tanggal mulai sewa + jumlah hari sewa. Estimasi kirim = H-1 sebelum mulai sewa (kecuali sudah diatur admin).
+const orderReturnDue = (order) => addDaysToDate(order.rentalDate, Number(order.days || 0));
+const orderShipDate = (order) => order.estimatedShipDate || addDaysToDate(order.rentalDate, -1);
+const orderScheduleMarkup = (order) => {
+    const stage = stageForOrder(order);
+    const returnDue = orderReturnDue(order);
+    const overdue = returnDue && stage < 7 && !order.returnTrackingNumber && returnDue < toDateValue(new Date());
+    const hold = order.shippingHoldReason && stage < 3
+        ? `<div class="notice" role="alert" style="margin-top:8px">${icon('warning')} <strong>Pengiriman ditunda admin.</strong> ${escapeHtml(order.shippingHoldReason)}</div>`
+        : '';
+    return `<div class="small" style="margin-top:10px;display:grid;gap:4px"><span>${icon('local_shipping')} ${order.estimatedShipDate ? 'Jadwal kirim toko' : 'Estimasi kirim (H-1 sebelum sewa)'}: <strong>${escapeHtml(formatDate(orderShipDate(order)))}</strong></span><span>${icon('event')} Mulai sewa: ${escapeHtml(formatDate(order.rentalDate))}</span><span>${icon('assignment_return')} Wajib dikembalikan paling lambat: <strong>${escapeHtml(formatDate(returnDue))}</strong></span>${overdue ? `<span style="color:var(--red)">${icon('error')} Sudah lewat jatuh tempo retur — keterlambatan dikenakan 25% harga sewa per hari.</span>` : ''}</div>${hold}`;
+};
+const returnGuideMarkup = (order) => `<ol class="small" style="margin:8px 0 0;padding-left:18px;display:grid;gap:4px"><li>Jangan mencuci atau menyetrika kostum sendiri; biarkan tim yang merawatnya.</li><li>Cek kelengkapan kostum dan semua aksesori (wig, properti, kantong) sebelum dikemas.</li><li>Kemas dengan pelindung dan foto kondisi paket sebagai dokumentasi.</li><li>Kirim via JNE Express tepat waktu, paling lambat <strong>${escapeHtml(formatDate(orderReturnDue(order)))}</strong>, lalu isi nomor resi dan unggah foto paket/resi pengembalian.</li></ol>${returnAddressMarkup()}`;
+const returnFormMarkup = (order) => `<form id="return-form" class="stack" style="margin-top:12px"><input type="hidden" name="orderId" value="${escapeHtml(order.id)}"><div class="field"><label for="return-tracking-${escapeHtml(order.id)}">Nomor resi pengembalian *</label><input class="input" id="return-tracking-${escapeHtml(order.id)}" name="returnTrackingNumber" required maxlength="60" placeholder="Nomor resi JNE untuk paket retur"></div><div class="field"><label for="return-proof-${escapeHtml(order.id)}">Foto kondisi paket / resi pengembalian *</label><input class="input" id="return-proof-${escapeHtml(order.id)}" name="returnProof" type="file" accept="image/*" required><small class="muted">JPG atau PNG, maksimal 8 MB.</small></div><p class="small auth-error" data-return-error role="alert" hidden></p><button class="button button-primary" type="submit">Kirim bukti pengembalian</button></form>`;
+const orderReturnBox = (order) => {
+    const stage = stageForOrder(order);
+    const hasResi = Boolean(order.returnTrackingNumber);
+    if (!hasResi && !(stage >= 5 && stage < 7)) return '';
+    return `<div class="panel" style="text-align:left;margin-top:16px"><h2>${icon('assignment_return')} Cara mengembalikan kostum</h2>${returnGuideMarkup(order)}${hasResi ? `<div class="deposit-note" style="margin-top:12px">${icon('check_circle', 'filled')} Resi pengembalian: <strong>${escapeHtml(order.returnTrackingNumber)}</strong>${order.returnedAt ? `<br><small>Dikirim ${escapeHtml(order.returnedAt)}</small>` : ''}</div>` : returnFormMarkup(order)}</div>`;
+};
 const ordersPage = () => {
     const tabs = ['Semua', 'Menunggu verifikasi', 'Diproses', 'Disewa', 'Selesai'];
     const customerOrders = state.orders.filter((order) => order.customerEmail === state.session?.email);
@@ -540,7 +624,7 @@ const ordersPage = () => {
     return `<div class="container page-wrap"><div class="page-intro"><div><span class="eyebrow">Pantau perjalanan paketmu</span><h1 class="page-title">Pesanan saya</h1><p>Semua status dan detail rental tersimpan di sini.</p></div><button class="button button-primary" data-go="catalog" type="button">Cari kostum ${icon('arrow_forward')}</button></div><div class="orders-tabs">${tabs.map((tab) => `<button class="orders-tab ${state.orderFilter === tab ? 'active' : ''}" data-order-filter="${tab}" type="button">${tab}</button>`).join('')}</div>${visibleOrders.length ? visibleOrders.map((order) => {
         const product = orderProduct(order);
         const stage = stageForOrder(order);
-        return `<article class="order-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(product.name)}</h3><p class="muted small">Kode ${escapeHtml(order.id)} · ${escapeHtml(orderQtyLabel(order))}Ukuran ${escapeHtml(order.size)} · ${order.days} hari</p><span class="status-pill ${stage > 5 ? 'success' : ''}">${escapeHtml(orderStages[stage])}</span><div class="small" style="margin-top:8px"><strong>${money(order.total)}</strong> <span class="muted">· ${escapeHtml(order.customerName || 'Penyewa')}</span></div></div><div class="order-card-actions"><button class="button button-secondary button-small" data-go="tracking" data-id="${escapeHtml(order.id)}" type="button">Lacak pesanan</button>${stage >= 7 ? `<button class="button ${order.review ? 'button-soft' : 'button-primary'} button-small" data-action="review-order" data-id="${escapeHtml(order.id)}" type="button">${icon('star')} ${order.review ? 'Ubah ulasan' : 'Beri ulasan'}</button>` : ''}</div></article>`;
+        return `<article class="order-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(product.name)}</h3><p class="muted small">Kode ${escapeHtml(order.id)} · ${escapeHtml(orderQtyLabel(order))}Ukuran ${escapeHtml(order.size)} · ${order.days} hari</p><span class="status-pill ${stage > 5 ? 'success' : ''}">${escapeHtml(orderStages[stage])}</span><div class="small" style="margin-top:8px"><strong>${money(order.total)}</strong> <span class="muted">· ${escapeHtml(order.customerName || 'Penyewa')}</span></div><div class="small" style="margin-top:8px">${orderPaymentStatus(order)}</div>${stage < 7 ? orderScheduleMarkup(order) : ''}${order.returnTrackingNumber ? `<p class="small" style="margin:8px 0 0">${icon('assignment_return')} Resi retur: <strong>${escapeHtml(order.returnTrackingNumber)}</strong></p>` : ''}</div><div class="order-card-actions"><button class="button button-secondary button-small" data-go="tracking" data-id="${escapeHtml(order.id)}" type="button">Lacak pesanan</button>${order.isPaidOff ? '' : `<button class="button button-primary button-small" data-action="settle-order" data-id="${escapeHtml(order.id)}" type="button">${icon('upload')} Upload pelunasan</button>`}${stage >= 5 && stage < 7 && !order.returnTrackingNumber ? `<button class="button button-soft button-small" data-action="return-order" data-id="${escapeHtml(order.id)}" type="button">${icon('assignment_return')} Input resi retur</button>` : ''}${stage >= 7 ? `<button class="button ${order.review ? 'button-soft' : 'button-primary'} button-small" data-action="review-order" data-id="${escapeHtml(order.id)}" type="button">${icon('star')} ${order.review ? 'Ubah ulasan' : 'Beri ulasan'}</button>` : ''}</div></article>`;
     }).join('') : '<div class="empty-state">Belum ada pesanan di kategori ini. Kostum pilihanmu menunggu.</div>'}</div>`;
 };
 
@@ -549,7 +633,7 @@ const trackingPage = () => {
     if (!order) return `<div class="container page-wrap"><div class="empty-state">Pesanan tidak ditemukan. <button class="button button-primary" data-go="catalog">Pilih kostum</button></div></div>`;
     const product = orderProduct(order);
     const stage = stageForOrder(order);
-    return `<div class="container page-wrap"><div class="breadcrumb"><button class="text-button" data-go="orders">Pesanan saya</button><span>/</span><span>${escapeHtml(order.id)}</span></div><section class="success-panel"><span class="success-icon">${icon(stage >= 7 ? 'check' : 'package_2')}</span><span class="eyebrow">${stage >= 7 ? 'Rental selesai' : 'Status pesanan'}</span><h1>${escapeHtml(orderStages[stage])}</h1><p class="muted">Kode pesanan <strong>${escapeHtml(order.id)}</strong> · dibuat ${escapeHtml(order.createdAt)}</p><div class="tracking-list">${orderStages.map((label, index) => `<div class="tracking-step ${index < stage ? 'done' : ''} ${index === stage ? 'current' : ''}"><span class="tracking-dot">${index < stage ? '✓' : index + 1}</span><div><strong>${label}</strong><small>${index < stage ? 'Selesai' : index === stage ? 'Sedang berlangsung' : 'Menunggu tahap sebelumnya'}</small></div></div>`).join('')}</div><div class="panel" style="text-align:left"><div class="readonly-product"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(product.name)}</h3><span class="muted small">${escapeHtml(orderQtyLabel(order))}Ukuran ${escapeHtml(order.size)} · ${order.days} hari</span><p class="small"><strong>Total ${money(order.total)}</strong></p></div></div>${order.trackingNumber ? `<p class="small">Resi JNE Express: <strong>${escapeHtml(order.trackingNumber)}</strong></p>` : ''}</div>${orderReviewBlock(order)}<button class="button button-secondary" style="margin-top:18px" data-go="orders">Kembali ke pesanan</button></section></div>`;
+    return `<div class="container page-wrap"><div class="breadcrumb"><button class="text-button" data-go="orders">Pesanan saya</button><span>/</span><span>${escapeHtml(order.id)}</span></div><section class="success-panel"><span class="success-icon">${icon(stage >= 7 ? 'check' : 'package_2')}</span><span class="eyebrow">${stage >= 7 ? 'Rental selesai' : 'Status pesanan'}</span><h1>${escapeHtml(orderStages[stage])}</h1><p class="muted">Kode pesanan <strong>${escapeHtml(order.id)}</strong> · dibuat ${escapeHtml(order.createdAt)}</p><div class="tracking-list">${orderStages.map((label, index) => `<div class="tracking-step ${index < stage ? 'done' : ''} ${index === stage ? 'current' : ''}"><span class="tracking-dot">${index < stage ? '✓' : index + 1}</span><div><strong>${label}</strong><small>${index < stage ? 'Selesai' : index === stage ? 'Sedang berlangsung' : 'Menunggu tahap sebelumnya'}</small></div></div>`).join('')}</div><div class="panel" style="text-align:left"><div class="readonly-product"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(product.name)}</h3><span class="muted small">${escapeHtml(orderQtyLabel(order))}Ukuran ${escapeHtml(order.size)} · ${order.days} hari</span><p class="small"><strong>Total ${money(order.total)}</strong></p></div></div>${order.trackingNumber ? `<p class="small">Resi JNE Express: <strong>${escapeHtml(order.trackingNumber)}</strong></p>` : ''}<div class="small" style="margin-top:10px">${orderPaymentStatus(order)}${order.isPaidOff ? '' : ` <button class="button button-primary button-small" data-action="settle-order" data-id="${escapeHtml(order.id)}" type="button">${icon('upload')} Upload pelunasan</button>`}</div>${stage < 7 ? orderScheduleMarkup(order) : ''}</div>${orderReturnBox(order)}${orderReviewBlock(order)}<button class="button button-secondary" style="margin-top:18px" data-go="orders">Kembali ke pesanan</button></section></div>`;
 };
 
 const registerProfileFields = () => `<fieldset class="profile-fields" data-customer-only style="border:0;padding:0;margin:0;display:grid;gap:14px"><div class="field"><label for="reg-phone">Nomor telepon aktif *</label><input class="input" id="reg-phone" name="phone" type="tel" required autocomplete="tel" placeholder="08xx xxxx xxxx"></div><div class="field"><label for="reg-address">Alamat lengkap (alamat utama) *</label><textarea class="textarea" id="reg-address" name="address" required minlength="10" autocomplete="street-address" placeholder="Jalan, nomor rumah, RT/RW, kecamatan, kota, kode pos"></textarea><small class="muted">Jadi alamat pengiriman bawaan. Saat checkout kamu tetap bisa menggantinya.</small></div><div class="form-grid"><div class="field"><label for="reg-social">Media sosial *</label><select class="select" id="reg-social" name="socialPlatform" required><option value="">Pilih platform</option><option>Instagram</option><option>TikTok</option><option>X</option><option>Lainnya</option></select></div><div class="field"><label for="reg-handle">Username akun *</label><input class="input" id="reg-handle" name="socialHandle" required placeholder="@username"></div></div><div class="field"><label for="reg-guarantor">Nomor telepon penjamin *</label><input class="input" id="reg-guarantor" name="guarantor" type="tel" required placeholder="Nomor keluarga/kerabat"></div><div class="field"><label for="id-selfie">Foto selfie memegang identitas *</label><input class="input" id="id-selfie" name="idSelfie" type="file" accept="image/*" required><small class="muted">JPG/PNG, maks. 8 MB. Hanya dilihat admin untuk verifikasi.</small></div><div class="field"><span class="field-label">Pernah menyewa kostum sebelumnya? *</span><div class="quantity-row"><label class="filter-label"><input type="radio" name="previousRental" value="yes" required data-previous-rental> Ya</label><label class="filter-label"><input type="radio" name="previousRental" value="no" required data-previous-rental> Belum</label></div></div><div class="field" id="previous-store-wrap" hidden><label for="previous-store">Nama toko rental sebelumnya *</label><input class="input" id="previous-store" name="previousStore" placeholder="Nama toko / akun rental"></div></fieldset>`;
@@ -724,7 +808,7 @@ const accountPage = () => {
     </div></div>`;
 };
 
-const adminMenu = [['overview', 'Dashboard Admin', 'dashboard'], ['inventory', 'Kelola Katalog', 'checkroom'], ['orders', 'Verifikasi Pesanan Masuk', 'fact_check'], ['ktp', 'Verifikasi KTP', 'badge'], ['reviews', 'Ulasan Pembeli', 'rate_review'], ['events', 'Kurasi Iklan Event', 'campaign'], ['qr', 'Generator QR Code Event', 'qr_code_2']];
+const adminMenu = [['overview', 'Dashboard Admin', 'dashboard'], ['inventory', 'Kelola Katalog', 'checkroom'], ['orders', 'Verifikasi Pesanan Masuk', 'fact_check'], ['ktp', 'Verifikasi KTP', 'badge'], ['reviews', 'Ulasan Pembeli', 'rate_review'], ['events', 'Kurasi Iklan Event', 'campaign'], ['qr', 'Generator QR Code Event', 'qr_code_2'], ['payments', 'Rekening & Alamat Retur', 'account_balance']];
 const adminShell = (content) => `<div class="admin-shell"><div class="admin-backdrop" data-action="menu"></div><aside class="admin-sidebar" id="admin-sidebar"><div class="admin-label">Manajemen rental</div><nav class="admin-nav">${adminMenu.map(([section, label, symbol]) => `<a href="#admin/${section}" data-admin-section="${section}" class="${state.adminSection === section ? 'active' : ''}">${icon(symbol)} ${label}</a>`).join('')}<a href="#home" data-go="home" class="only-mobile">${icon('storefront')} Lihat toko</a><a href="#account" data-go="account" class="only-mobile ${state.page === 'account' ? 'active' : ''}">${icon('manage_accounts')} Pengaturan akun</a></nav><div class="notice" style="margin:25px 3px 0">Perubahan katalog, pesanan, dan event tersimpan langsung ke database.</div></aside><section class="admin-content">${content}</section></div>`;
 
 const topSellingChart = () => {
@@ -793,7 +877,46 @@ const adminInventory = () => `<div class="admin-content-header"><div><span class
 
 const ktpPill = (status, hasPhoto = true) => { const info = idStatusInfo(status, hasPhoto); return `<span class="status-pill ${info.tone}">${icon(info.symbol)} ${info.label}</span>`; };
 const orderExtraDetails = (order) => `<div class="order-extra"><p class="small"><strong>Item pesanan</strong></p><table class="data-table"><thead><tr><th>Ukuran</th><th>Jumlah</th></tr></thead><tbody>${(order.items || []).map((item) => `<tr><td>${escapeHtml(item.size)}</td><td>${item.qty}</td></tr>`).join('')}</tbody></table>${order.isGroup ? `<p class="small">${icon('groups')} Pesanan kelompok: <strong>${escapeHtml(order.groupName)}</strong></p>${order.groupMembers ? `<pre class="members-list">${escapeHtml(order.groupMembers)}</pre>` : ''}` : ''}<p class="small">Status KTP: ${ktpPill(order.idStatus, order.hasIdSelfie)} ${order.userId ? `<button class="button button-secondary button-small" type="button" data-action="ktp-view" data-id="${order.userId}">Buka verifikasi KTP</button>` : ''}</p></div>`;
-const adminOrders = () => `<div class="admin-content-header"><div><span class="eyebrow">Verifikasi penyewa & pembayaran</span><h1>Verifikasi pesanan</h1></div><span class="status-pill">${state.orders.filter((order) => order.stage < 3).length} menunggu</span></div>${state.orders.length ? state.orders.map((order) => { const product = orderProduct(order); const aiValid = Boolean(order.idSelfieImage && order.paymentProofImage); const needKtp = order.stage < 2 && order.userId && order.idStatus !== 'verified'; return `<article class="order-admin-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(order.customerName)} · ${escapeHtml(order.id)}</h3><p class="muted small">${escapeHtml(product.name)} · ${escapeHtml(order.size)} · ${order.days} hari${order.quantity > 1 ? ` · ${order.quantity} kostum` : ''}</p>${order.isGroup ? `<p class="small group-line">${icon('groups')} Kelompok: <strong>${escapeHtml(order.groupName)}</strong></p>` : ''}<p class="small">${escapeHtml(order.socialPlatform || '')} ${escapeHtml(order.socialHandle || '')} · Penjamin: ${escapeHtml(order.guarantor || '-')}</p><span class="status-pill">${escapeHtml(orderStages[order.stage])}</span> ${ktpPill(order.idStatus, order.hasIdSelfie)}<p class="small">DP ${money(order.dp)} · Bukti: ${escapeHtml(order.paymentProofName || 'unggahan demo')}</p><span class="status-pill ${aiValid ? 'success' : 'danger'}">${icon(aiValid ? 'verified_user' : 'warning')} AI ${aiValid ? 'Dokumen & bukti valid' : 'Perlu pemeriksaan manual'}</span></div><div class="order-admin-actions"><button class="button button-secondary button-small" data-action="inspect-order" data-id="${escapeHtml(order.id)}">Detail penyewa</button>${needKtp ? `<button class="button button-primary button-small" data-action="ktp-view" data-id="${order.userId}">Verifikasi KTP dulu</button>` : `<button class="button button-primary button-small" data-action="advance-order" data-id="${escapeHtml(order.id)}">${order.stage < 2 ? 'Setujui verifikasi' : order.stage < 7 ? 'Tahap berikutnya' : 'Selesai'}</button>`}<button class="button button-danger button-small" data-action="reject-order" data-id="${escapeHtml(order.id)}">Tolak</button></div></article>`; }).join('') : '<div class="empty-state">Belum ada pesanan penyewa.</div>'}`;
+const ADMIN_ORDER_TABS = ['Semua', 'Perlu Verifikasi', 'Siap Kirim / Ditunda', 'Disewa & Retur', 'Selesai'];
+const adminOrderBucket = (order) => {
+    const stage = order.stage ?? 0;
+    return stage < 2 ? 'Perlu Verifikasi' : stage < 5 ? 'Siap Kirim / Ditunda' : stage < 7 ? 'Disewa & Retur' : 'Selesai';
+};
+const adminOrderActions = (order) => {
+    const id = escapeHtml(order.id);
+    const stage = order.stage ?? 0;
+    const btn = (action, tone, label) => `<button class="button ${tone} button-small" data-action="${action}" data-id="${id}" type="button">${label}</button>`;
+    const needKtp = stage < 2 && order.userId && order.idStatus !== 'verified';
+    const parts = [btn('inspect-order', 'button-secondary', 'Detail penyewa')];
+    if (stage < 2) {
+        parts.push(needKtp
+            ? `<button class="button button-primary button-small" data-action="ktp-view" data-id="${order.userId}" type="button">Verifikasi KTP dulu</button>`
+            : btn('approve-order', 'button-primary', 'Setujui Verifikasi'));
+    } else if (stage === 2) {
+        parts.push(btn('ship-schedule', 'button-primary', `${icon('local_shipping')} Atur Jadwal &amp; Resi Kirim`));
+        if (!order.isPaidOff) parts.push(btn('hold-shipping', 'button-soft', `${icon('pause_circle')} Tunda Kirim`));
+        if (order.shippingHoldReason) parts.push(btn('release-hold', 'button-soft', 'Lepas Tunda'));
+    } else if (stage < 5) {
+        parts.push(btn('receive-order', 'button-primary', 'Tandai Diterima Penyewa'));
+    } else if (stage < 7) {
+        parts.push(btn('confirm-return', 'button-primary', 'Konfirmasi Retur &amp; Kembalikan Deposit'));
+    } else {
+        parts.push('<button class="button button-soft button-small" type="button" disabled>Selesai</button>');
+    }
+    parts.push(btn('reject-order', 'button-danger', 'Tolak'));
+    return parts.join('');
+};
+const adminOrderCard = (order) => {
+    const product = orderProduct(order);
+    const stage = order.stage ?? 0;
+    const aiValid = Boolean(order.idSelfieImage && order.paymentProofImage);
+    return `<article class="order-admin-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(order.customerName)} · ${escapeHtml(order.id)}</h3><p class="muted small">${escapeHtml(product.name)} · ${escapeHtml(order.size)} · ${order.days} hari${order.quantity > 1 ? ` · ${order.quantity} kostum` : ''}</p>${order.isGroup ? `<p class="small group-line">${icon('groups')} Kelompok: <strong>${escapeHtml(order.groupName)}</strong></p>` : ''}<p class="small">${escapeHtml(order.socialPlatform || '')} ${escapeHtml(order.socialHandle || '')} · Penjamin: ${escapeHtml(order.guarantor || '-')}</p><span class="status-pill">${escapeHtml(orderStages[stage])}</span> ${ktpPill(order.idStatus, order.hasIdSelfie)}<p class="small">DP ${money(order.dp)} · Bukti: ${escapeHtml(order.paymentProofName || 'unggahan demo')}</p><p class="small">${orderPaymentStatus(order)}${order.finalPaymentProofName ? ` · Bukti pelunasan: ${escapeHtml(order.finalPaymentProofName)}` : ''}</p>${stage === 2 && !order.isPaidOff ? `<p class="small" style="color:var(--red)">${icon('warning')} Penyewa belum lunas — resi kirim terkunci sampai pelunasan diterima.</p>` : ''}<p class="small">${icon('local_shipping')} Jadwal kirim: <strong>${escapeHtml(formatDate(orderShipDate(order)))}</strong>${order.estimatedShipDate ? '' : ' <span class="muted">(estimasi H-1)</span>'}${order.trackingNumber ? ` · Resi kirim ${escapeHtml(order.trackingNumber)}` : ''} · Wajib retur: <strong>${escapeHtml(formatDate(orderReturnDue(order)))}</strong></p>${order.shippingHoldReason ? `<span class="status-pill danger">${icon('pause_circle')} Kirim ditunda · ${escapeHtml(order.shippingHoldReason)}</span>` : ''}${order.returnTrackingNumber ? `<p class="small">${icon('assignment_return')} Resi retur penyewa: <strong>${escapeHtml(order.returnTrackingNumber)}</strong>${order.returnedAt ? ` · dikirim ${escapeHtml(order.returnedAt)}` : ''}</p>` : (stage >= 5 && stage < 7 ? '<p class="small muted">Resi retur belum diinput penyewa.</p>' : '')}<span class="status-pill ${aiValid ? 'success' : 'danger'}">${icon(aiValid ? 'verified_user' : 'warning')} AI ${aiValid ? 'Dokumen &amp; bukti valid' : 'Perlu pemeriksaan manual'}</span></div><div class="order-admin-actions">${adminOrderActions(order)}</div></article>`;
+};
+const adminOrders = () => {
+    const counts = Object.fromEntries(ADMIN_ORDER_TABS.map((tab) => [tab, tab === 'Semua' ? state.orders.length : state.orders.filter((order) => adminOrderBucket(order) === tab).length]));
+    const visible = state.orders.filter((order) => state.adminOrderFilter === 'Semua' || adminOrderBucket(order) === state.adminOrderFilter);
+    return `<div class="admin-content-header"><div><span class="eyebrow">Verifikasi penyewa & pembayaran</span><h1>Verifikasi pesanan</h1></div><span class="status-pill">${state.orders.filter((order) => order.stage < 3).length} menunggu</span></div><div class="orders-tabs">${ADMIN_ORDER_TABS.map((tab) => `<button class="orders-tab ${state.adminOrderFilter === tab ? 'active' : ''}" data-admin-order-filter="${tab}" type="button">${tab} (${counts[tab]})</button>`).join('')}</div>${visible.length ? visible.map(adminOrderCard).join('') : `<div class="empty-state">${state.orders.length ? 'Tidak ada pesanan di tahap ini.' : 'Belum ada pesanan penyewa.'}</div>`}`;
+};
 
 const adminShipping = () => `<div class="admin-content-header"><div><span class="eyebrow">Fulfillment</span><h1>Pengiriman & retur</h1></div></div>${state.orders.length ? state.orders.map((order) => { const product = orderProduct(order); return `<article class="order-admin-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(order.id)} · ${escapeHtml(order.customerName)}</h3><p class="muted small">${escapeHtml(product.name)} · ${escapeHtml(order.size)}${order.isGroup ? ` · Kelompok ${escapeHtml(order.groupName)}` : ''} · Jadwal sewa: ${escapeHtml(order.rentalDate || 'Belum diatur')}</p><span class="status-pill ${order.stage >= 5 ? 'success' : ''}">${escapeHtml(orderStages[order.stage])}</span><p class="small">${order.trackingNumber ? `JNE Express · Resi ${escapeHtml(order.trackingNumber)}` : 'Nomor resi belum ditambahkan'}</p></div><div class="order-admin-actions"><button class="button button-secondary button-small" data-action="shipping-order" data-id="${escapeHtml(order.id)}">${order.trackingNumber ? 'Ubah resi' : 'Tambah resi'}</button><button class="button button-primary button-small" data-action="advance-order" data-id="${escapeHtml(order.id)}">${order.stage < 7 ? 'Update status' : 'Selesai'}</button><button class="button button-soft button-small" data-action="refund-deposit" data-id="${escapeHtml(order.id)}">Refund deposit</button></div></article>`; }).join('') : '<div class="empty-state">Belum ada pesanan untuk diproses.</div>'}`;
 
@@ -918,6 +1041,38 @@ const adminReviewsPage = () => {
 };
 
 // Muat data admin / ulasan publik sesuai halaman yang sedang dibuka.
+const paymentDraft = () => {
+    if (!state.paymentDraft) {
+        const copy = normalizePaymentAccounts(state.paymentAccounts);
+        ['bank', 'ewallet'].forEach((kind) => { if (!copy[kind].length) copy[kind] = [{ provider: '', number: '', holder: '' }]; });
+        state.paymentDraft = copy;
+    }
+    return state.paymentDraft;
+};
+const addPaymentRow = (kind) => {
+    const draft = paymentDraft();
+    if (!draft[kind]) return;
+    if (draft[kind].length >= MAX_PAYMENT_ROWS) { showToast(`Maksimal ${MAX_PAYMENT_ROWS} baris per kategori.`); return; }
+    draft[kind].push({ provider: '', number: '', holder: '' });
+    render();
+};
+const removePaymentRow = (kind, index) => {
+    const draft = paymentDraft();
+    if (!draft[kind]) return;
+    if (draft[kind].length <= 1) { showToast('Minimal satu baris harus tersisa.'); return; }
+    draft[kind].splice(index, 1);
+    render();
+};
+const paymentSectionMarkup = (kind, title, symbol, providerLabel, providerPlaceholder) => {
+    const rows = paymentDraft()[kind];
+    return `<section class="panel" style="margin-bottom:16px"><div class="admin-toolbar"><h2 style="margin:0">${icon(symbol)} ${title}</h2><span class="muted small">${rows.length}/${MAX_PAYMENT_ROWS} baris</span></div>${rows.map((row, index) => `<div class="form-grid" style="margin-top:14px"><div class="field"><label for="pay-${kind}-${index}-provider">${providerLabel} *</label><input class="input" id="pay-${kind}-${index}-provider" data-pay-kind="${kind}" data-pay-index="${index}" data-pay-field="provider" required maxlength="60" placeholder="${providerPlaceholder}" value="${escapeHtml(row.provider)}"></div><div class="field"><label for="pay-${kind}-${index}-number">Nomor rekening / akun *</label><input class="input" id="pay-${kind}-${index}-number" data-pay-kind="${kind}" data-pay-index="${index}" data-pay-field="number" required maxlength="40" inputmode="numeric" placeholder="Contoh: 1234567890" value="${escapeHtml(row.number)}"></div><div class="field"><label for="pay-${kind}-${index}-holder">Atas nama *</label><input class="input" id="pay-${kind}-${index}-holder" data-pay-kind="${kind}" data-pay-index="${index}" data-pay-field="holder" required maxlength="80" placeholder="Nama pemilik rekening" value="${escapeHtml(row.holder)}"></div><div class="field" style="align-self:end"><button class="button button-danger button-small" type="button" data-action="pay-remove" data-kind="${kind}" data-index="${index}" ${rows.length <= 1 ? 'disabled' : ''}>${icon('delete')} Hapus baris</button></div></div>`).join('')}<div style="margin-top:14px"><button class="button button-secondary button-small" type="button" data-action="pay-add" data-kind="${kind}" ${rows.length >= MAX_PAYMENT_ROWS ? 'disabled' : ''}>${icon('add')} Tambah baris</button></div></section>`;
+};
+const returnAddressSectionMarkup = () => {
+    const value = paymentDraft().returnAddress || {};
+    return `<section class="panel" style="margin-bottom:16px"><div class="admin-toolbar"><h2 style="margin:0">${icon('location_on')} Alamat Tujuan Pengembalian Kostum</h2></div><p class="muted small">Alamat ini tampil di panduan pengembalian penyewa beserta tombol salin.</p><div class="form-grid" style="margin-top:14px"><div class="field"><label for="return-recipient">Nama penerima *</label><input class="input" id="return-recipient" data-return-field="recipient" required maxlength="80" placeholder="Nama admin / toko" value="${escapeHtml(value.recipient || '')}"></div><div class="field"><label for="return-phone">Nomor HP admin *</label><input class="input" id="return-phone" data-return-field="phone" required maxlength="30" inputmode="tel" placeholder="08xx xxxx xxxx" value="${escapeHtml(value.phone || '')}"></div></div><div class="field" style="margin-top:14px"><label for="return-address">Alamat lengkap (kota / studio) *</label><textarea class="textarea" id="return-address" data-return-field="address" required maxlength="300" placeholder="Jalan, nomor, kecamatan, kota, kode pos">${escapeHtml(value.address || '')}</textarea></div></section>`;
+};
+const adminPayments = () => `<div class="admin-content-header"><div><span class="eyebrow">Tujuan pembayaran</span><h1>Rekening, e-wallet &amp; alamat retur</h1><p class="muted small" style="margin:4px 0 0">Daftar ini tampil ke penyewa saat checkout, pelunasan DP, dan pengembalian kostum. Maksimal ${MAX_PAYMENT_ROWS} baris per kategori, minimal 1 baris.</p></div></div><form id="payment-accounts-form" class="stack">${paymentSectionMarkup('bank', 'Rekening bank', 'account_balance', 'Nama bank', 'Contoh: BCA')}${paymentSectionMarkup('ewallet', 'E-wallet', 'account_balance_wallet', 'Nama e-wallet', 'Contoh: GoPay')}${returnAddressSectionMarkup()}<div class="quantity-row"><button class="button button-primary" type="submit">${icon('save')} Simpan perubahan</button><button class="button button-secondary" type="button" data-action="pay-reset">Batalkan perubahan</button></div></form>`;
+
 const ensureLazyData = () => {
     if (state.page === 'admin' && state.session?.role === 'admin') {
         if (state.adminSection === 'ktp' && state.identities === null && !state.identitiesLoading) {
@@ -943,7 +1098,7 @@ const ensureLazyData = () => {
 
 const adminPage = () => {
     if (state.session?.role !== 'admin') return accountAuthPage(false, true);
-    const content = ({ overview: adminOverview, inventory: adminInventory, orders: adminOrders, ktp: adminKtp, reviews: adminReviewsPage, shipping: adminShipping, events: adminEvents, qr: adminQrCodes }[state.adminSection] || adminOverview)();
+    const content = ({ overview: adminOverview, inventory: adminInventory, orders: adminOrders, ktp: adminKtp, reviews: adminReviewsPage, shipping: adminShipping, events: adminEvents, qr: adminQrCodes, payments: adminPayments }[state.adminSection] || adminOverview)();
     return adminShell(content);
 };
 
@@ -1153,7 +1308,7 @@ const checkoutTotals = () => {
 
 const checkoutAssistant = () => `<section class="form-section ai-checkout-panel"><h2><span class="section-index">AI</span> Asisten pintar pemesanan</h2><div class="form-grid"><div class="field"><label for="fit-height">Tinggi badan (cm) · opsional</label><input class="input" id="fit-height" type="number" min="100" max="230" placeholder="Contoh: 165"></div><div class="field"><label for="fit-weight">Berat badan (kg) · opsional</label><input class="input" id="fit-weight" type="number" min="25" max="250" placeholder="Contoh: 58"></div><div class="field span-2"><label for="fit-notes">Catatan kecocokan kostum</label><input class="input" id="fit-notes" placeholder="Contoh: ingin lebih longgar di bagian bahu"></div></div><div class="ai-result" style="margin-top:14px"><div><small>Rekomendasi ukuran AI</small><strong id="ai-fit-recommendation">Lengkapi ukuran badan untuk rekomendasi.</strong></div><div><small>Skor kepercayaan demo</small><strong id="ai-risk-score">Skor awal: 55/100</strong></div></div><div id="ai-deposit-advice" class="notice" style="margin-top:12px">Deposit standar berlaku sampai riwayat rental diverifikasi.</div><div id="ai-document-scan" class="deposit-note" style="margin-top:12px">${icon('document_scanner')} Verifikasi dokumen mengikuti foto identitas di akunmu.</div><p class="muted small" style="margin-bottom:0">Pemindaian wajah, kejelasan dokumen, dan skor risiko di sini adalah simulasi lokal, bukan verifikasi identitas nyata.</p></section>`;
 
-const updateCheckoutSummary = () => {
+const updateCheckoutSummary = ({ resetAmount = false } = {}) => {
     const { pr, total } = checkoutTotals();
     const subtotal = pr.subtotal;
     const minimumDp = Math.ceil(total * 0.5);
@@ -1173,15 +1328,23 @@ const updateCheckoutSummary = () => {
     }
     const paymentAmount = app.querySelector('#payment-amount');
     if (paymentAmount) {
-        const targetVal = isFull ? total : minimumDp;
-        paymentAmount.min = String(targetVal);
-        paymentAmount.max = String(total);
-        if (isFull || Number(paymentAmount.value) < minimumDp) paymentAmount.value = String(targetVal);
+        // Skema "Bayar Lunas": nominal = total & terkunci. Skema "DP": min. 50% sampai kurang dari total.
+        const dpMax = Math.max(minimumDp, total - 1);
+        paymentAmount.readOnly = isFull;
+        paymentAmount.min = String(isFull ? total : minimumDp);
+        paymentAmount.max = String(isFull ? total : dpMax);
+        const current = Number(paymentAmount.value);
+        if (isFull) paymentAmount.value = String(total);
+        else if (resetAmount || !current || current < minimumDp || current > dpMax) paymentAmount.value = String(minimumDp);
+        const label = app.querySelector('label[for="payment-amount"]');
+        if (label) label.textContent = isFull ? 'Jumlah yang dibayar (lunas) *' : 'Jumlah DP yang dibayar *';
         const note = paymentAmount.nextElementSibling;
-        if (note) note.textContent = `Minimal ${money(targetVal)} · maksimal ${money(total)}`;
+        if (note) note.textContent = isFull ? `Bayar lunas ${money(total)} — nominal terkunci.` : `Minimal ${money(minimumDp)} · maksimal ${money(dpMax)} (kurang dari total)`;
     }
     const notice = app.querySelector('#checkout-form .checkout-sections > .form-section:nth-child(4) .notice');
-    if (notice) notice.innerHTML = `Minimum DP 50%: <strong>${money(minimumDp)}</strong>. Sisa <strong>${money(total - minimumDp)}</strong> dibayarkan paling lambat H-1 sebelum pengiriman.`;
+    if (notice) notice.innerHTML = isFull
+        ? `Bayar lunas sekarang: <strong>${money(total)}</strong>. Tidak ada sisa tagihan.`
+        : `Minimum DP 50%: <strong>${money(minimumDp)}</strong>. Sisa <strong>${money(total - minimumDp)}</strong> dibayarkan paling lambat H-1 sebelum pengiriman.`;
 };
 
 const updateAIAssistant = () => {
@@ -1260,8 +1423,10 @@ const updateOrder = async (id, changes, successMessage) => {
         if ('stage' in changes) await loadCatalog(); // stok bisa kembali saat pesanan selesai
         render();
         if (successMessage) showToast(successMessage);
+        return true;
     } catch (error) {
         showToast(error.message || 'Gagal memperbarui pesanan.');
+        return false;
     }
 };
 const setOrderStage = (id, delta = 1, exact = null) => {
@@ -1519,6 +1684,20 @@ const galleryEditorMarkup = () => (state.modalImages.length
     ? `<div class="gallery-grid">${state.modalImages.map((src, index) => `<figure class="gallery-thumb ${index === 0 ? 'is-cover' : ''}"><img src="${escapeHtml(src)}" alt="Foto ${index + 1}"><figcaption>${index === 0 ? 'Sampul' : `<button type="button" class="text-button" data-action="gallery-cover" data-index="${index}">Jadikan sampul</button>`}</figcaption><button type="button" class="gallery-remove" data-action="gallery-remove" data-index="${index}" aria-label="Hapus foto ${index + 1}">${icon('close')}</button></figure>`).join('')}</div>`
     : '<p class="muted small">Belum ada foto.</p>');
 const refreshGalleryEditor = () => { const holder = document.querySelector('#gallery-editor'); if (holder) holder.innerHTML = galleryEditorMarkup(); };
+const openSettleModal = (order) => {
+    const product = orderProduct(order);
+    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="settle-modal-title"><div class="admin-content-header"><h2 id="settle-modal-title">Upload pelunasan</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><form id="settle-form" class="stack"><input type="hidden" name="orderId" value="${escapeHtml(order.id)}"><p class="muted small">${escapeHtml(product.name)} · ${escapeHtml(order.id)}</p><div class="price-line total"><span>Sisa tagihan</span><strong>${money(Number(order.remainingAmount || 0))}</strong></div><div class="payment-choice"><label><input type="radio" name="paymentMethod" value="Transfer bank" required checked> Transfer bank<br><small class="muted">BCA · BNI · Mandiri</small></label><label><input type="radio" name="paymentMethod" value="E-wallet" required> E-wallet<br><small class="muted">GoPay · OVO · DANA</small></label></div><div class="payment-destination" data-payment-destination style="display:grid;gap:10px" aria-live="polite">${paymentDestinationMarkup('Transfer bank')}</div><div class="field"><label for="settle-proof">Unggah bukti pelunasan *</label><input class="input" id="settle-proof" name="settleProof" type="file" accept="image/*" required><small class="muted">JPG atau PNG, maksimal 8 MB.</small></div><p class="small auth-error" data-settle-error role="alert" hidden></p><button class="button button-primary" type="submit">Kirim bukti pelunasan</button></form></section></div>`;
+    render();
+};
+const openReturnModal = (order) => {
+    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="return-modal-title"><div class="admin-content-header"><h2 id="return-modal-title">Kembalikan kostum</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><p class="muted small">${escapeHtml(orderProduct(order).name)} · ${escapeHtml(order.id)}</p>${returnGuideMarkup(order)}${returnFormMarkup(order)}</section></div>`;
+    render();
+};
+const openShipModal = (order) => {
+    const paid = Boolean(order.isPaidOff);
+    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="ship-modal-title"><div class="admin-content-header"><h2 id="ship-modal-title">Atur jadwal &amp; resi kirim</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><form id="ship-form" class="stack"><input type="hidden" name="orderId" value="${escapeHtml(order.id)}"><p class="muted small">${escapeHtml(order.customerName)} · ${escapeHtml(order.id)} · Mulai sewa ${escapeHtml(formatDate(order.rentalDate))}</p>${paid ? '' : `<div class="notice" role="alert">${icon('warning')} Penyewa belum lunas (sisa ${money(Number(order.remainingAmount || 0))}). Input resi kirim dikunci sampai pelunasan diterima. Jadwal kirim tetap bisa diatur, atau kirim bisa ditunda.</div>`}<div class="field"><label for="ship-date">Jadwal / estimasi kirim</label><input class="input" id="ship-date" name="estimatedShipDate" type="date" value="${escapeHtml(orderShipDate(order))}"><small class="muted">Tanggal ini tampil ke penyewa di halaman pesanan.</small></div><div class="field"><label for="ship-tracking">Nomor resi kirim (JNE Express)</label><input class="input" id="ship-tracking" name="trackingNumber" maxlength="60" value="${escapeHtml(order.trackingNumber || '')}" placeholder="${paid ? 'Masukkan nomor resi' : 'Terkunci — menunggu pelunasan'}" ${paid ? '' : 'disabled'}><small class="muted">Mengisi resi memindahkan pesanan ke tahap Dikirim JNE.</small></div><button class="button button-primary" type="submit">Simpan</button></form></section></div>`;
+    render();
+};
 const acceptRules = async (checked) => {
     if (state.session?.role === 'admin') { showToast('Akun admin tidak perlu menyetujui aturan.'); render(); return; }
     if (!checked) {
@@ -1550,6 +1729,8 @@ app.addEventListener('click', (event) => {
         if (hint) hint.textContent = ['', 'Kurang puas', 'Biasa saja', 'Cukup baik', 'Bagus', 'Luar biasa'][value];
         return;
     }
+    const adminOrderTab = event.target.closest('[data-admin-order-filter]');
+    if (adminOrderTab) { state.adminOrderFilter = adminOrderTab.dataset.adminOrderFilter; render(); return; }
     const ktpTab = event.target.closest('[data-ktp-filter]');
     if (ktpTab) { state.ktpFilter = ktpTab.dataset.ktpFilter; render(); return; }
     const reviewTab = event.target.closest('[data-review-filter]');
@@ -1598,6 +1779,7 @@ app.addEventListener('click', (event) => {
         state.adminSection = section.dataset.adminSection;
         if (state.adminSection === 'ktp') state.identities = null;
         if (state.adminSection === 'reviews') state.adminReviews = null;
+        state.paymentDraft = null;
         state.page = 'admin';
         history.pushState({ page: 'admin' }, '', `#admin/${state.adminSection}`);
         render();
@@ -1646,6 +1828,24 @@ app.addEventListener('click', (event) => {
                 render();
                 break;
             }
+            case 'return-order': { const order = state.orders.find((item) => item.id === id); if (order) openReturnModal(order); break; }
+            case 'approve-order': updateOrder(id, { stage: 2 }, 'Verifikasi disetujui. Pesanan masuk tahap Diproses.'); break;
+            case 'ship-schedule': { const order = state.orders.find((item) => item.id === id); if (order) openShipModal(order); break; }
+            case 'hold-shipping': {
+                const order = state.orders.find((item) => item.id === id);
+                const reason = prompt('Alasan tunda kirim (akan terlihat oleh penyewa):', order?.shippingHoldReason || 'Menunggu pelunasan sisa tagihan H-1 pengiriman');
+                if (order && reason !== null) updateOrder(id, { shippingHoldReason: reason.trim() || 'Menunggu pelunasan sisa tagihan H-1 pengiriman' }, 'Pengiriman ditunda.');
+                break;
+            }
+            case 'release-hold': updateOrder(id, { shippingHoldReason: null }, 'Tunda kirim dilepas.'); break;
+            case 'receive-order': updateOrder(id, { stage: 5 }, 'Pesanan ditandai diterima penyewa.'); break;
+            case 'confirm-return': if (confirm(`Konfirmasi kostum pesanan ${id} sudah kembali dan deposit dikembalikan?`)) updateOrder(id, { stage: 7 }, 'Retur dikonfirmasi & deposit ditandai dikembalikan.'); break;
+            case 'settle-order': { const order = state.orders.find((item) => item.id === id); if (order) openSettleModal(order); break; }
+            case 'copy-return-address': copyReturnAddress(); break;
+            case 'copy-account': copyAccountNumber(action.dataset.number); break;
+            case 'pay-add': addPaymentRow(action.dataset.kind); break;
+            case 'pay-remove': removePaymentRow(action.dataset.kind, Number(action.dataset.index)); break;
+            case 'pay-reset': state.paymentDraft = null; render(); showToast('Perubahan dibatalkan.'); break;
             case 'review-order': { const order = state.orders.find((item) => item.id === id); if (order) openReviewModal(order); break; }
             case 'reply-review': { const review = state.adminReviews?.reviews.find((item) => String(item.id) === String(id)); if (review) openReplyModal(review); break; }
             case 'ktp-view': openKtpModal(id); break;
@@ -1684,7 +1884,7 @@ app.addEventListener('click', (event) => {
             case 'inspect-order': {
                 const order = state.orders.find((item) => item.id === id);
                 if (order) {
-                    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="renter-modal-title"><div class="admin-content-header"><h2 id="renter-modal-title">Verifikasi penyewa</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><div class="stack"><div><strong>${escapeHtml(order.customerName)}</strong><p class="muted small">${escapeHtml(order.phone)} · Penjamin ${escapeHtml(order.guarantor)}</p><p class="small">Skor kepercayaan AI: ${Number(order.trustScore || 55)}/100 · Deposit ${money(order.deposit || 0)}</p><p class="small">${escapeHtml(order.socialPlatform)} ${escapeHtml(order.socialHandle)}</p><p class="small">${escapeHtml(order.address)}</p>${orderExtraDetails(order)}</div><div class="form-grid"><div><strong class="small">Selfie identitas</strong><p class="muted small">${escapeHtml(order.idSelfieName || 'Tidak tersedia')}</p>${order.idSelfieImage ? `<img class="upload-preview" src="${escapeHtml(order.idSelfieImage)}" alt="Selfie identitas penyewa">` : ''}</div><div><strong class="small">Bukti pembayaran · ${escapeHtml(order.paymentMethod || '')}</strong><p class="muted small">${escapeHtml(order.paymentProofName || 'Tidak tersedia')}</p>${order.paymentProofImage ? `<img class="upload-preview" src="${escapeHtml(order.paymentProofImage)}" alt="Bukti pembayaran penyewa">` : ''}</div></div></div></section></div>`;
+                    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="renter-modal-title"><div class="admin-content-header"><h2 id="renter-modal-title">Verifikasi penyewa</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><div class="stack"><div><strong>${escapeHtml(order.customerName)}</strong><p class="muted small">${escapeHtml(order.phone)} · Penjamin ${escapeHtml(order.guarantor)}</p><p class="small">Skor kepercayaan AI: ${Number(order.trustScore || 55)}/100 · Deposit ${money(order.deposit || 0)}</p><p class="small">${escapeHtml(order.socialPlatform)} ${escapeHtml(order.socialHandle)}</p><p class="small">${escapeHtml(order.address)}</p>${orderExtraDetails(order)}</div><div><strong class="small">Selfie identitas</strong><p class="muted small">${escapeHtml(order.idSelfieName || 'Tidak tersedia')}</p>${order.idSelfieImage ? `<img class="upload-preview" src="${escapeHtml(order.idSelfieImage)}" alt="Selfie identitas penyewa">` : ''}</div><div class="deposit-note"><strong class="small">Status pembayaran:</strong> ${orderPaymentStatus(order)}<p class="small" style="margin:6px 0 0">Total ${money(order.total || 0)} · DP ${money(order.dp || 0)}</p></div><div class="form-grid"><div><strong class="small">Bukti DP · ${escapeHtml(order.paymentMethod || '-')}</strong><p class="muted small">${escapeHtml(order.paymentProofName || 'Tidak tersedia')}</p>${order.paymentProofImage ? `<img class="upload-preview" src="${escapeHtml(order.paymentProofImage)}" alt="Bukti DP penyewa">` : ''}</div><div><strong class="small">Bukti Pelunasan · ${escapeHtml(order.finalPaymentMethod || '-')}</strong><p class="muted small">${escapeHtml(order.finalPaymentProofName || 'Belum ada bukti pelunasan')}${order.finalPaidAt ? ` · ${escapeHtml(order.finalPaidAt)}` : ''}</p>${order.finalPaymentProofImage ? `<img class="upload-preview" src="${escapeHtml(order.finalPaymentProofImage)}" alt="Bukti pelunasan penyewa">` : ''}</div></div>${order.returnProofImage || order.returnTrackingNumber ? `<div class="deposit-note"><strong class="small">${icon('assignment_return')} Bukti Pengembalian Kostum</strong><p class="small" style="margin:6px 0 0">Resi retur: <strong>${escapeHtml(order.returnTrackingNumber || '-')}</strong></p><p class="small" style="margin:0">Dikirim: ${escapeHtml(order.returnedAt || '-')}</p>${order.returnProofName ? `<p class="muted small">${escapeHtml(order.returnProofName)}</p>` : ''}${order.returnProofImage ? `<img class="upload-preview" src="${escapeHtml(order.returnProofImage)}" alt="Foto paket pengembalian kostum">` : '<p class="muted small">Foto paket retur belum tersedia.</p>'}</div>` : ''}</div></div></section></div>`;
                     render();
                 }
                 break;
@@ -1824,6 +2024,14 @@ app.addEventListener('click', (event) => {
 });
 
 app.addEventListener('input', (event) => {
+    if (event.target.matches('[data-return-field]')) {
+        const draft = paymentDraft();
+        draft.returnAddress = { ...draft.returnAddress, [event.target.dataset.returnField]: event.target.value };
+    }
+    if (event.target.matches('[data-pay-field]')) {
+        const row = paymentDraft()[event.target.dataset.payKind]?.[Number(event.target.dataset.payIndex)];
+        if (row) row[event.target.dataset.payField] = event.target.value;
+    }
     if (event.target.matches('[data-group-field]')) state.group[event.target.dataset.groupField] = event.target.value;
     if (event.target.matches('#fit-height, #fit-weight, #fit-notes, #previous-store, #renter-address')) updateAIAssistant();
     if (event.target.matches('#renter-address')) updateCheckoutSummary();
@@ -1839,6 +2047,15 @@ app.addEventListener('input', (event) => {
 });
 
 app.addEventListener('change', (event) => {
+    if (event.target.matches('input[name="paymentScheme"]')) updateCheckoutSummary({ resetAmount: true });
+    if (event.target.matches('input[name="paymentMethod"]')) {
+        const form = event.target.closest('form');
+        const holder = form?.querySelector('[data-payment-destination]');
+        if (holder) {
+            const markup = paymentDestinationMarkup(event.target.value);
+            holder.innerHTML = form.id === 'checkout-form' ? localizeCopy(markup) : markup;
+        }
+    }
     if (event.target.matches('#organizer-form input, #organizer-form select, #organizer-form textarea')) updateOrganizerPreview();
     if (event.target.matches('#event-poster, #event-pdf')) {
         const form = app.querySelector('#organizer-form');
@@ -2061,12 +2278,120 @@ app.addEventListener('submit', async (event) => {
         return;
     }
 
+    if (formId === 'payment-accounts-form') {
+        const draft = paymentDraft();
+        const payload = { bank: normalizePaymentRows(draft.bank), ewallet: normalizePaymentRows(draft.ewallet), returnAddress: normalizeReturnAddress(draft.returnAddress) };
+        if (!payload.bank.length || !payload.ewallet.length) { showToast('Minimal satu baris harus tersisa di setiap kategori.'); return; }
+        if ([...payload.bank, ...payload.ewallet].some((row) => !row.provider || !row.number || !row.holder)) { showToast('Lengkapi nama, nomor, dan atas nama di setiap baris.'); return; }
+        if (!payload.returnAddress.recipient || !payload.returnAddress.phone || !payload.returnAddress.address) { showToast('Lengkapi nama penerima, nomor HP, dan alamat lengkap tujuan retur.'); return; }
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
+        try {
+            const result = await api('/payment-accounts', { method: 'PUT', body: payload });
+            const source = result && (result.bank || result.ewallet) ? result : (result?.paymentAccounts || payload);
+            state.paymentAccounts = normalizePaymentAccounts({ ...payload, ...source });
+            state.paymentDraft = null;
+            render();
+            showToast('Rekening & e-wallet tersimpan.');
+        } catch (error) {
+            showToast(error.message || 'Gagal menyimpan rekening.');
+            if (submitButton) submitButton.disabled = false;
+        }
+        return;
+    }
+
+    if (formId === 'return-form') {
+        const values = new FormData(form);
+        const order = state.orders.find((item) => item.id === String(values.get('orderId')));
+        const errorElement = form.querySelector('[data-return-error]');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const fail = (message) => {
+            if (errorElement) { errorElement.textContent = message; errorElement.hidden = false; } else showToast(message);
+            if (submitButton) submitButton.disabled = false;
+        };
+        const number = String(values.get('returnTrackingNumber') || '').trim();
+        if (!order) { fail('Pesanan tidak ditemukan.'); return; }
+        if (!number) { fail('Nomor resi pengembalian wajib diisi.'); return; }
+        const proofFile = form.elements.returnProof?.files?.[0];
+        if (!proofFile) { fail('Foto kondisi paket / resi pengembalian wajib diunggah.'); return; }
+        if (submitButton) submitButton.disabled = true;
+        if (errorElement) errorElement.hidden = true;
+        try {
+            const returnProofImage = await imageToDataUrl(proofFile);
+            const result = await api(`/orders/${encodeURIComponent(order.id)}/return`, { method: 'POST', body: { returnTrackingNumber: number, returnProofName: proofFile.name, returnProofImage } });
+            const updated = result?.order || (result?.id ? result : null);
+            if (updated) state.orders = state.orders.map((item) => (item.id === order.id ? updated : item));
+            else await loadOrders();
+            state.modal = null;
+            render();
+            showToast('Nomor resi pengembalian tersimpan.');
+        } catch (error) {
+            fail(error.message || 'Gagal menyimpan nomor resi pengembalian.');
+        }
+        return;
+    }
+
+    if (formId === 'ship-form') {
+        const values = new FormData(form);
+        const order = state.orders.find((item) => item.id === String(values.get('orderId')));
+        if (!order) { showToast('Pesanan tidak ditemukan.'); return; }
+        const body = {};
+        const shipDate = String(values.get('estimatedShipDate') || '').trim();
+        if (shipDate) body.estimatedShipDate = shipDate;
+        const tracking = String(values.get('trackingNumber') || '').trim();
+        if (order.isPaidOff && tracking) {
+            body.trackingNumber = tracking;
+            if ((order.stage ?? 0) < 3) body.stage = 3;
+        }
+        if (!Object.keys(body).length) { showToast('Isi jadwal kirim atau nomor resi kirim.'); return; }
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
+        const ok = await updateOrder(order.id, body, body.trackingNumber ? 'Resi tersimpan. Pesanan masuk tahap Dikirim JNE.' : 'Jadwal kirim tersimpan.');
+        if (ok) { state.modal = null; render(); } else if (submitButton) submitButton.disabled = false;
+        return;
+    }
+
+    if (formId === 'settle-form') {
+        const values = new FormData(form);
+        const order = state.orders.find((item) => item.id === String(values.get('orderId')));
+        const errorElement = form.querySelector('[data-settle-error]');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const fail = (message) => {
+            if (errorElement) { errorElement.textContent = message; errorElement.hidden = false; } else showToast(message);
+            if (submitButton) submitButton.disabled = false;
+        };
+        if (!order) { fail('Pesanan tidak ditemukan.'); return; }
+        if (submitButton) submitButton.disabled = true;
+        if (errorElement) errorElement.hidden = true;
+        try {
+            const proofFile = form.elements.settleProof?.files?.[0];
+            if (!proofFile) { fail('Bukti pelunasan wajib diunggah.'); return; }
+            const proofImage = await imageToDataUrl(proofFile);
+            const result = await api(`/orders/${encodeURIComponent(order.id)}/settle`, {
+                method: 'POST',
+                body: { paymentMethod: paymentMethodLabel(values.get('paymentMethod')), proofName: proofFile.name, proofImage },
+            });
+            const updated = result?.order || (result?.id ? result : null);
+            if (updated) state.orders = state.orders.map((item) => (item.id === order.id ? updated : item));
+            else await loadOrders();
+            state.modal = null;
+            render();
+            showToast('Bukti pelunasan terkirim.');
+        } catch (error) {
+            fail(error.message || 'Gagal mengirim bukti pelunasan.');
+        }
+        return;
+    }
+
     if (formId === 'checkout-form') {
         const values = new FormData(form);
         const { product, total } = checkoutTotals();
         const dp = Number(values.get('paymentAmount'));
         const minimum = Math.ceil(total * 0.5);
         if (dp < minimum || dp > total) { showToast(`DP harus antara ${money(minimum)} dan ${money(total)}.`); return; }
+        const scheme = String(values.get('paymentScheme') || 'dp');
+        if (scheme === 'full' && dp !== total) { showToast(`Bayar lunas harus sebesar ${money(total)}.`); return; }
+        if (scheme === 'dp' && dp >= total) { showToast('Nominal DP harus kurang dari total. Pilih "Bayar Lunas Sekarang" untuk membayar penuh.'); return; }
         const items = cartItems(product);
         if (!items.length) { showToast('Pilih minimal satu ukuran di halaman detail kostum.'); return; }
         if (state.group.enabled && cartUnits(product) < 2) { showToast('Pesanan kelompok minimal 2 kostum. Tambah jumlah di halaman detail.'); return; }

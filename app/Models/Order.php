@@ -19,7 +19,10 @@ class Order extends Model
         'costume_id', 'costume_name', 'costume_image', 'size', 'days', 'addons',
         'rental_date', 'deposit', 'total', 'dp', 'stage', 'bucket', 'tracking_number',
         'payment_method', 'id_selfie_name', 'id_selfie_image',
-        'payment_proof_name', 'payment_proof_image', 'trust_score', 'stock_held',
+        'payment_proof_name', 'payment_proof_image',
+     'final_payment_method', 'final_payment_proof_name', 'final_payment_proof_image', 'final_paid_at',
+     'trust_score', 'stock_held',
+     'estimated_ship_date', 'shipping_hold_reason', 'return_tracking_number', 'returned_at',
         'items', 'quantity', 'is_group', 'group_name', 'group_members',
     ];
 
@@ -146,14 +149,30 @@ class Order extends Model
             'paymentProofName' => $this->payment_proof_name,
             'hasIdSelfie' => !empty($this->id_selfie_name) || !empty($this->id_selfie_image),
             'hasPaymentProof' => !empty($this->payment_proof_image),
+            'isPaidOff' => ($this->dp >= $this->total) || !empty($this->final_payment_proof_image),
+            'remainingAmount' => max(0, (int) $this->total - (int) $this->dp),
+            'finalPaymentMethod' => $this->final_payment_method,
+            'finalPaymentProofName' => $this->final_payment_proof_name,
+            'hasFinalPaymentProof' => !empty($this->final_payment_proof_image),
+            'finalPaidAt' => optional($this->final_paid_at)->translatedFormat('j F Y, H:i'),
             'createdAt' => optional($this->created_at)->translatedFormat('j F Y, H:i'),
             'createdAtIso' => optional($this->created_at)->toIso8601String(),
+            'estimatedShipDate' => $this->estimated_ship_date instanceof \DateTimeInterface
+             ? $this->estimated_ship_date->format('Y-m-d')
+             : $this->estimated_ship_date,
+         'shippingHoldReason' => $this->shipping_hold_reason,
+         'returnTrackingNumber' => $this->return_tracking_number,
+         'returnProofName' => $this->return_proof_name,
+'hasReturnProof' => !empty($this->return_proof_image),
+         'returnedAt' => optional($this->returned_at)->translatedFormat('j F Y, H:i'),
         ];
 
         if ($withDocs) {
-            $data['idSelfieImage'] = $this->id_selfie_image;
-            $data['paymentProofImage'] = $this->payment_proof_image;
-        }
+         $data['idSelfieImage'] = $this->id_selfie_image;
+         $data['paymentProofImage'] = $this->payment_proof_image;
+         $data['finalPaymentProofImage'] = $this->final_payment_proof_image;
+         $data['returnProofImage'] = $this->return_proof_image;
+     }
 
         return $data;
     }
