@@ -217,6 +217,11 @@ class OrderController extends Controller
             return response()->json(['message' => 'Pembayaran belum lunas! Gunakan "Tunda Kirim" sampai penyewa mengunggah bukti pelunasan.'], 422);
         }
 
+        // Pengembalian kostum wajib disertai resi & foto paket retur dari penyewa sebelum diselesaikan
+        if ($targetStage !== null && $targetStage >= 7 && (empty($order->return_tracking_number) || empty($order->return_proof_image))) {
+            return response()->json(['message' => 'Penyewa belum mengunggah nomor resi dan foto paket pengembalian kostum.'], 422);
+        }
+
         DB::transaction(function () use ($order, $data) {
             if (array_key_exists('estimatedShipDate', $data)) {
                 $order->estimated_ship_date = $data['estimatedShipDate'];
@@ -268,12 +273,12 @@ class OrderController extends Controller
         ]);
 
         $order->forceFill([
-            'final_payment_method' => $data['paymentMethod'],
-            'final_payment_proof_name' => $data['proofName'] ?? null,
-            'final_payment_proof_image' => $data['proofImage'],
-            'final_paid_at' => now(),
+         'final_payment_method' => $data['paymentMethod'],
+         'final_payment_proof_name' => $data['proofName'] ?? null,
+         'final_payment_proof_image' => $data['proofImage'],
+         'final_paid_at' => now(),
+         'shipping_hold_reason' => null,
         ])->save();
-
         return response()->json([
             'status' => 'success',
             'order' => $order->toFront(),

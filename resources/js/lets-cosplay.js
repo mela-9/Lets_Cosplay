@@ -882,35 +882,55 @@ const adminOrderBucket = (order) => {
     const stage = order.stage ?? 0;
     return stage < 2 ? 'Perlu Verifikasi' : stage < 5 ? 'Siap Kirim / Ditunda' : stage < 7 ? 'Disewa & Retur' : 'Selesai';
 };
+const adminDocTile = (title, meta, image, alt, emptyText) => `<div style="min-width:0;border:1px solid rgba(128,128,128,.3);border-radius:14px;padding:12px;display:grid;gap:8px;align-content:start"><strong class="small">${title}</strong><span class="muted small" style="word-break:break-word">${meta}</span>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(alt)}" data-action="toggle-doc-zoom" title="Klik untuk memperbesar" style="width:100%;aspect-ratio:4 / 3;object-fit:cover;border-radius:10px;cursor:zoom-in;background:rgba(128,128,128,.12)">` : `<div class="muted small" style="aspect-ratio:4 / 3;display:grid;place-items:center;border:1px dashed rgba(128,128,128,.4);border-radius:10px;text-align:center;padding:8px">${emptyText}</div>`}</div>`;
+const orderReturnReady = (order) => Boolean(order.returnTrackingNumber && order.hasReturnProof);
+const adminInfoTile = (label, value, note = '') => `<div style="min-width:0;padding:8px 10px;border:1px solid rgba(128,128,128,.28);border-radius:10px"><div class="muted small">${label}</div><strong class="small" style="word-break:break-word">${value}</strong>${note ? `<div class="muted small">${note}</div>` : ''}</div>`;
+const adminPaymentPill = (order) => (order.isPaidOff
+    ? `<span class="status-pill success">${icon('check_circle', 'filled')} Lunas</span>`
+    : `<span class="status-pill danger">${icon('payments')} Belum Lunas · Sisa ${money(Number(order.remainingAmount || 0))}</span>`);
 const adminOrderActions = (order) => {
     const id = escapeHtml(order.id);
     const stage = order.stage ?? 0;
-    const btn = (action, tone, label) => `<button class="button ${tone} button-small" data-action="${action}" data-id="${id}" type="button">${label}</button>`;
+    const btn = (action, tone, label, extra = '') => `<button class="button ${tone} button-small" data-action="${action}" data-id="${id}" type="button" ${extra}>${label}</button>`;
     const needKtp = stage < 2 && order.userId && order.idStatus !== 'verified';
-    const parts = [btn('inspect-order', 'button-secondary', 'Detail penyewa')];
+    const primary = [];
+    const secondary = [btn('inspect-order', 'button-secondary', 'Detail penyewa')];
     if (stage < 2) {
-        parts.push(needKtp
+        primary.push(needKtp
             ? `<button class="button button-primary button-small" data-action="ktp-view" data-id="${order.userId}" type="button">Verifikasi KTP dulu</button>`
             : btn('approve-order', 'button-primary', 'Setujui Verifikasi'));
     } else if (stage === 2) {
-        parts.push(btn('ship-schedule', 'button-primary', `${icon('local_shipping')} Atur Jadwal &amp; Resi Kirim`));
-        if (!order.isPaidOff) parts.push(btn('hold-shipping', 'button-soft', `${icon('pause_circle')} Tunda Kirim`));
-        if (order.shippingHoldReason) parts.push(btn('release-hold', 'button-soft', 'Lepas Tunda'));
+        primary.push(btn('ship-schedule', 'button-primary', `${icon('local_shipping')} Atur Jadwal &amp; Resi Kirim`));
+        if (!order.isPaidOff) primary.push(btn('hold-shipping', 'button-soft', `${icon('pause_circle')} Tunda Kirim`));
+        if (order.shippingHoldReason) primary.push(btn('release-hold', 'button-soft', 'Lepas Tunda'));
     } else if (stage < 5) {
-        parts.push(btn('receive-order', 'button-primary', 'Tandai Diterima Penyewa'));
+        primary.push(btn('receive-order', 'button-primary', 'Tandai Diterima Penyewa'));
     } else if (stage < 7) {
-        parts.push(btn('confirm-return', 'button-primary', 'Konfirmasi Retur &amp; Kembalikan Deposit'));
+        primary.push(orderReturnReady(order)
+            ? btn('confirm-return', 'button-primary', `${icon('verified')} Konfirmasi Retur &amp; Kembalikan Deposit`)
+            : btn('confirm-return', 'button-primary', 'Konfirmasi Retur &amp; Kembalikan Deposit', 'disabled aria-disabled="true" title="Menunggu penyewa mengirim resi &amp; foto paket retur"'));
     } else {
-        parts.push('<button class="button button-soft button-small" type="button" disabled>Selesai</button>');
+        primary.push('<button class="button button-soft button-small" type="button" disabled>Selesai</button>');
     }
-    parts.push(btn('reject-order', 'button-danger', 'Tolak'));
-    return parts.join('');
+    secondary.push(`<button class="button button-soft button-small" data-action="reject-order" data-id="${id}" type="button" style="color:var(--red)">Tolak</button>`);
+    return `<div style="display:flex;gap:8px;flex-wrap:wrap">${primary.join('')}</div><div style="display:flex;gap:8px;flex-wrap:wrap">${secondary.join('')}</div>`;
 };
 const adminOrderCard = (order) => {
     const product = orderProduct(order);
     const stage = order.stage ?? 0;
     const aiValid = Boolean(order.idSelfieImage && order.paymentProofImage);
-    return `<article class="order-admin-card"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"><div><h3>${escapeHtml(order.customerName)} · ${escapeHtml(order.id)}</h3><p class="muted small">${escapeHtml(product.name)} · ${escapeHtml(order.size)} · ${order.days} hari${order.quantity > 1 ? ` · ${order.quantity} kostum` : ''}</p>${order.isGroup ? `<p class="small group-line">${icon('groups')} Kelompok: <strong>${escapeHtml(order.groupName)}</strong></p>` : ''}<p class="small">${escapeHtml(order.socialPlatform || '')} ${escapeHtml(order.socialHandle || '')} · Penjamin: ${escapeHtml(order.guarantor || '-')}</p><span class="status-pill">${escapeHtml(orderStages[stage])}</span> ${ktpPill(order.idStatus, order.hasIdSelfie)}<p class="small">DP ${money(order.dp)} · Bukti: ${escapeHtml(order.paymentProofName || 'unggahan demo')}</p><p class="small">${orderPaymentStatus(order)}${order.finalPaymentProofName ? ` · Bukti pelunasan: ${escapeHtml(order.finalPaymentProofName)}` : ''}</p>${stage === 2 && !order.isPaidOff ? `<p class="small" style="color:var(--red)">${icon('warning')} Penyewa belum lunas — resi kirim terkunci sampai pelunasan diterima.</p>` : ''}<p class="small">${icon('local_shipping')} Jadwal kirim: <strong>${escapeHtml(formatDate(orderShipDate(order)))}</strong>${order.estimatedShipDate ? '' : ' <span class="muted">(estimasi H-1)</span>'}${order.trackingNumber ? ` · Resi kirim ${escapeHtml(order.trackingNumber)}` : ''} · Wajib retur: <strong>${escapeHtml(formatDate(orderReturnDue(order)))}</strong></p>${order.shippingHoldReason ? `<span class="status-pill danger">${icon('pause_circle')} Kirim ditunda · ${escapeHtml(order.shippingHoldReason)}</span>` : ''}${order.returnTrackingNumber ? `<p class="small">${icon('assignment_return')} Resi retur penyewa: <strong>${escapeHtml(order.returnTrackingNumber)}</strong>${order.returnedAt ? ` · dikirim ${escapeHtml(order.returnedAt)}` : ''}</p>` : (stage >= 5 && stage < 7 ? '<p class="small muted">Resi retur belum diinput penyewa.</p>' : '')}<span class="status-pill ${aiValid ? 'success' : 'danger'}">${icon(aiValid ? 'verified_user' : 'warning')} AI ${aiValid ? 'Dokumen &amp; bukti valid' : 'Perlu pemeriksaan manual'}</span></div><div class="order-admin-actions">${adminOrderActions(order)}</div></article>`;
+    const notes = [];
+    if (stage === 2 && !order.isPaidOff) notes.push(`<div class="deposit-note">${icon('warning')} Penyewa belum lunas (sisa ${money(Number(order.remainingAmount || 0))}) — resi kirim terkunci sampai pelunasan diterima.</div>`);
+    if (stage === 2 && order.isPaidOff && order.hasFinalPaymentProof) notes.push(`<div class="deposit-note">${icon('check_circle', 'filled')} Pelunasan sudah masuk${order.finalPaidAt ? ` (${escapeHtml(order.finalPaidAt)})` : ''} — cek bukti pelunasan di Detail penyewa, lalu atur jadwal &amp; resi kirim.</div>`);
+    if (order.shippingHoldReason) notes.push(`<div class="deposit-note">${icon('pause_circle')} <strong>Kirim ditunda:</strong> ${escapeHtml(order.shippingHoldReason)}</div>`);
+    if (stage >= 5 && stage < 7) {
+        if (orderReturnReady(order)) notes.push(`<div class="deposit-note"><span class="status-pill success">${icon('verified', 'filled')} Bukti retur lengkap</span> Resi &amp; foto paket sudah diterima — periksa di Detail penyewa sebelum konfirmasi.</div>`);
+        else {
+            const missing = [!order.returnTrackingNumber ? 'nomor resi' : '', !order.hasReturnProof ? 'foto paket retur' : ''].filter(Boolean).join(' &amp; ');
+            notes.push(`<div class="deposit-note">${icon('hourglass_top')} Menunggu penyewa menginput ${missing}. Konfirmasi retur &amp; pengembalian deposit terkunci sampai bukti lengkap.</div>`);
+        }
+    }
+    return `<article class="order-admin-card" style="display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px 18px;align-items:start"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" style="width:88px;height:112px;object-fit:cover;border-radius:12px"><div style="min-width:0;display:grid;gap:12px"><div><span class="eyebrow">${escapeHtml(order.id)}</span><h3 style="margin:2px 0">${escapeHtml(product.name)} · ${escapeHtml(order.size)}${order.quantity > 1 ? ` · ${order.quantity} kostum` : ''}</h3><p class="muted small" style="margin:0">${escapeHtml(order.customerName)} · ${order.days} hari · ${escapeHtml(order.socialPlatform || '')} ${escapeHtml(order.socialHandle || '')} · Penjamin ${escapeHtml(order.guarantor || '-')}</p>${order.isGroup ? `<p class="small group-line" style="margin:4px 0 0">${icon('groups')} Kelompok: <strong>${escapeHtml(order.groupName)}</strong></p>` : ''}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="status-pill">${escapeHtml(orderStages[stage])}</span>${adminPaymentPill(order)}${order.shippingHoldReason ? `<span class="status-pill danger">${icon('pause_circle')} Kirim ditunda</span>` : ''}${ktpPill(order.idStatus, order.hasIdSelfie)}<span class="status-pill ${aiValid ? 'success' : 'danger'}">${icon(aiValid ? 'verified_user' : 'warning')} AI ${aiValid ? 'Dokumen &amp; bukti valid' : 'Perlu pemeriksaan manual'}</span></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">${adminInfoTile('Jadwal kirim', escapeHtml(formatDate(orderShipDate(order))), order.estimatedShipDate ? '' : 'estimasi H-1')}${adminInfoTile('Mulai sewa', escapeHtml(formatDate(order.rentalDate)))}${adminInfoTile('Wajib retur', escapeHtml(formatDate(orderReturnDue(order))))}</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px">${adminInfoTile('Resi kirim JNE', order.trackingNumber ? escapeHtml(order.trackingNumber) : '—')}${adminInfoTile('Resi retur penyewa', order.returnTrackingNumber ? escapeHtml(order.returnTrackingNumber) : '—', order.returnedAt ? `Dikirim ${escapeHtml(order.returnedAt)}` : (stage >= 5 && stage < 7 ? 'Belum diinput' : ''))}${adminInfoTile('Pembayaran', `DP ${money(order.dp)}`, `Bukti: ${escapeHtml(order.paymentProofName || 'unggahan demo')}${order.finalPaymentProofName ? ` · Pelunasan: ${escapeHtml(order.finalPaymentProofName)}` : ''}`)}</div>${notes.join('')}</div><div style="grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid rgba(128,128,128,.25);padding-top:12px">${adminOrderActions(order)}</div></article>`;
 };
 const adminOrders = () => {
     const counts = Object.fromEntries(ADMIN_ORDER_TABS.map((tab) => [tab, tab === 'Semua' ? state.orders.length : state.orders.filter((order) => adminOrderBucket(order) === tab).length]));
@@ -1839,7 +1859,21 @@ app.addEventListener('click', (event) => {
             }
             case 'release-hold': updateOrder(id, { shippingHoldReason: null }, 'Tunda kirim dilepas.'); break;
             case 'receive-order': updateOrder(id, { stage: 5 }, 'Pesanan ditandai diterima penyewa.'); break;
-            case 'confirm-return': if (confirm(`Konfirmasi kostum pesanan ${id} sudah kembali dan deposit dikembalikan?`)) updateOrder(id, { stage: 7 }, 'Retur dikonfirmasi & deposit ditandai dikembalikan.'); break;
+            case 'confirm-return': {
+                const order = state.orders.find((item) => item.id === id);
+                if (!order || !orderReturnReady(order)) { showToast('Menunggu penyewa mengirim resi & foto paket retur.'); break; }
+                if (confirm(`Konfirmasi kostum pesanan ${id} sudah kembali dan deposit dikembalikan?`)) updateOrder(id, { stage: 7 }, 'Retur dikonfirmasi & deposit ditandai dikembalikan.');
+                break;
+            }
+            case 'toggle-doc-zoom': {
+                const zoomed = action.dataset.zoomed === '1';
+                action.dataset.zoomed = zoomed ? '' : '1';
+                action.style.aspectRatio = zoomed ? '4 / 3' : 'auto';
+                action.style.objectFit = zoomed ? 'cover' : 'contain';
+                action.style.maxHeight = zoomed ? '' : '70vh';
+                action.style.cursor = zoomed ? 'zoom-in' : 'zoom-out';
+                break;
+            }
             case 'settle-order': { const order = state.orders.find((item) => item.id === id); if (order) openSettleModal(order); break; }
             case 'copy-return-address': copyReturnAddress(); break;
             case 'copy-account': copyAccountNumber(action.dataset.number); break;
@@ -1884,7 +1918,7 @@ app.addEventListener('click', (event) => {
             case 'inspect-order': {
                 const order = state.orders.find((item) => item.id === id);
                 if (order) {
-                    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="renter-modal-title"><div class="admin-content-header"><h2 id="renter-modal-title">Verifikasi penyewa</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><div class="stack"><div><strong>${escapeHtml(order.customerName)}</strong><p class="muted small">${escapeHtml(order.phone)} · Penjamin ${escapeHtml(order.guarantor)}</p><p class="small">Skor kepercayaan AI: ${Number(order.trustScore || 55)}/100 · Deposit ${money(order.deposit || 0)}</p><p class="small">${escapeHtml(order.socialPlatform)} ${escapeHtml(order.socialHandle)}</p><p class="small">${escapeHtml(order.address)}</p>${orderExtraDetails(order)}</div><div><strong class="small">Selfie identitas</strong><p class="muted small">${escapeHtml(order.idSelfieName || 'Tidak tersedia')}</p>${order.idSelfieImage ? `<img class="upload-preview" src="${escapeHtml(order.idSelfieImage)}" alt="Selfie identitas penyewa">` : ''}</div><div class="deposit-note"><strong class="small">Status pembayaran:</strong> ${orderPaymentStatus(order)}<p class="small" style="margin:6px 0 0">Total ${money(order.total || 0)} · DP ${money(order.dp || 0)}</p></div><div class="form-grid"><div><strong class="small">Bukti DP · ${escapeHtml(order.paymentMethod || '-')}</strong><p class="muted small">${escapeHtml(order.paymentProofName || 'Tidak tersedia')}</p>${order.paymentProofImage ? `<img class="upload-preview" src="${escapeHtml(order.paymentProofImage)}" alt="Bukti DP penyewa">` : ''}</div><div><strong class="small">Bukti Pelunasan · ${escapeHtml(order.finalPaymentMethod || '-')}</strong><p class="muted small">${escapeHtml(order.finalPaymentProofName || 'Belum ada bukti pelunasan')}${order.finalPaidAt ? ` · ${escapeHtml(order.finalPaidAt)}` : ''}</p>${order.finalPaymentProofImage ? `<img class="upload-preview" src="${escapeHtml(order.finalPaymentProofImage)}" alt="Bukti pelunasan penyewa">` : ''}</div></div>${order.returnProofImage || order.returnTrackingNumber ? `<div class="deposit-note"><strong class="small">${icon('assignment_return')} Bukti Pengembalian Kostum</strong><p class="small" style="margin:6px 0 0">Resi retur: <strong>${escapeHtml(order.returnTrackingNumber || '-')}</strong></p><p class="small" style="margin:0">Dikirim: ${escapeHtml(order.returnedAt || '-')}</p>${order.returnProofName ? `<p class="muted small">${escapeHtml(order.returnProofName)}</p>` : ''}${order.returnProofImage ? `<img class="upload-preview" src="${escapeHtml(order.returnProofImage)}" alt="Foto paket pengembalian kostum">` : '<p class="muted small">Foto paket retur belum tersedia.</p>'}</div>` : ''}</div></div></section></div>`;
+                    state.modal = `<div class="modal-backdrop" data-action="close-modal"><section class="panel modal-panel" role="dialog" aria-modal="true" aria-labelledby="renter-modal-title" style="width:min(860px,calc(100vw - 32px));max-height:90vh;overflow:auto"><div class="admin-content-header"><h2 id="renter-modal-title">Verifikasi penyewa</h2><button class="icon-button" data-action="close-modal" type="button" aria-label="Tutup">${icon('close')}</button></div><div class="stack"><div style="display:grid;gap:10px"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><strong>${escapeHtml(order.customerName)}</strong><p class="muted small" style="margin:2px 0 0">${escapeHtml(order.phone)} · Penjamin ${escapeHtml(order.guarantor)}</p></div><div style="display:flex;gap:6px;flex-wrap:wrap">${adminPaymentPill(order)}<span class="status-pill">${escapeHtml(orderStages[order.stage ?? 0])}</span></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px">${adminInfoTile('Skor kepercayaan AI', `${Number(order.trustScore || 55)}/100`)}${adminInfoTile('Deposit', money(order.deposit || 0))}${adminInfoTile('Total / DP', `${money(order.total || 0)} / ${money(order.dp || 0)}`)}${adminInfoTile('Sosial media', `${escapeHtml(order.socialPlatform)} ${escapeHtml(order.socialHandle)}`)}</div><p class="small" style="margin:0">${escapeHtml(order.address)}</p>${orderExtraDetails(order)}</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px">${adminDocTile('Foto Selfie KTP', escapeHtml(order.idSelfieName || 'Tidak tersedia'), order.idSelfieImage, 'Selfie identitas penyewa', 'Selfie belum tersedia')}${adminDocTile(`Bukti DP · ${escapeHtml(order.paymentMethod || '-')}`, escapeHtml(order.paymentProofName || 'Tidak tersedia'), order.paymentProofImage, 'Bukti DP penyewa', 'Bukti DP belum tersedia')}${adminDocTile(`Bukti Pelunasan · ${escapeHtml(order.finalPaymentMethod || '-')}`, `${escapeHtml(order.finalPaymentProofName || 'Belum ada bukti pelunasan')}${order.finalPaidAt ? ` · ${escapeHtml(order.finalPaidAt)}` : ''}`, order.finalPaymentProofImage, 'Bukti pelunasan penyewa', 'Belum ada bukti pelunasan')}${adminDocTile('Bukti Pengembalian Kostum', `Resi: ${escapeHtml(order.returnTrackingNumber || '-')} · Dikirim: ${escapeHtml(order.returnedAt || '-')}${order.returnProofName ? ` · ${escapeHtml(order.returnProofName)}` : ''}`, order.returnProofImage, 'Foto paket pengembalian kostum', 'Foto paket retur belum tersedia')}</div><p class="muted small" style="margin:0">Klik gambar untuk memperbesar atau memperkecil.</p></div></section></div>`;
                     render();
                 }
                 break;

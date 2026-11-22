@@ -38,6 +38,8 @@ class Order extends Model
         'total' => 'integer',
         'dp' => 'integer',
         'trust_score' => 'integer',
+        'final_paid_at' => 'datetime',
+        'returned_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
