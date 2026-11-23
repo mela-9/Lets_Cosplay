@@ -468,7 +468,7 @@ const footer = () => `
                 <div><a class="brand" href="#home" data-go="home">${brandLogoMarkup}<span class="brand-name">Let's<span>Cosplay</span></span></a><p class="footer-note">Temukan karakter favoritmu. Kami siapkan kostum, kamu ciptakan ceritanya.</p></div>
                 <div><h4>Jelajahi</h4><div class="footer-links"><a href="#catalog" data-go="catalog">Katalog kostum</a><a href="#events" data-go="events">Event cosplay</a><a href="#rules" data-go="rules">Aturan rental</a></div></div>
                 <div><h4>Bantuan</h4><div class="footer-links">${state.session ? `${state.session.role === 'customer' ? '<a href="#orders" data-go="orders">Pesanan saya</a>' : ''}<a href="#account" data-go="account">Pengaturan akun</a>` : '<a href="#login" data-go="login">Masuk akun</a><a href="#register" data-go="register">Daftar akun</a>'}<a href="#howto" data-go="howto">Cara sewa</a><a href="#organizer" data-go="organizer">Pasang iklan event</a></div></div>
-                <div><h4>Jam layanan</h4><div class="footer-links"><span>Senin–Sabtu</span><span>09.00–18.00 WIB</span><span>Jakarta, Indonesia</span></div></div>
+                <div><h4>Jam layanan</h4><div class="footer-links"><span>Senin–Sabtu</span><span>09.00–18.00 WIB</span><span>Palembang, Indonesia</span></div></div>
             </div>
             <div class="footer-bottom"><span>© 2026 Let'sCosplay. Semua hak dilindungi.</span><span>Data akun &amp; pesanan tersimpan aman di server.</span></div>
         </div>
