@@ -11,12 +11,38 @@ const STORAGE_KEYS = {
     rules: 'letscosplay-rules-accepted',
 };
 
+// Aset gambar lokal (public/images)
+const IMAGE_ASSETS = {
+    logo: '/images/logo.png',
+    hero: '/images/event.jpeg',
+    eventStrip: '/images/event.jpeg',
+    organizerHero: '/images/event.jpeg',
+    // Cadangan inline untuk halaman Masuk/Daftar (gambar utama diatur lewat CSS .auth-art::before)
+    login: '/images/masuk.jpg',
+    register: '/images/daftar.jpg',
+};
+// Foto kostum lokal: dipakai sebagai cadangan bila gambar produk gagal dimuat (dicocokkan dari nama/alt gambar).
+const CHARACTER_IMAGES = [
+    { match: /gojo/i, src: '/images/gojo.jpeg' },
+    { match: /miku/i, src: '/images/miku.jpeg' },
+    { match: /nezuko/i, src: '/images/nezuko.jpeg' },
+    { match: /raiden|shogun/i, src: '/images/raidenshogun.jpeg' },
+];
+const localCharacterImage = (text) => CHARACTER_IMAGES.find((item) => item.match.test(String(text || '')))?.src || '';
+const brandLogoMarkup = `<span class="brand-mark" style="display:inline-grid;place-items:center;overflow:hidden;padding:3px;box-sizing:border-box;background:#fff;border:1px solid rgba(128,128,128,.35)"><img src="${IMAGE_ASSETS.logo}" alt="Let's Cosplay" style="display:block;width:100%;height:100%;object-fit:contain"></span>`;
+(() => {
+    let favicon = document.querySelector('link[rel~="icon"]');
+    if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; document.head.appendChild(favicon); }
+    favicon.type = 'image/png';
+    favicon.href = IMAGE_ASSETS.logo;
+})();
+
 const seedProducts = [];
 
 const seedEvents = [
-    { id: 'e1', title: 'Jakarta Cosplay Parade 2026', date: '21 November 2026', location: 'M Bloc Space, Jakarta', theme: 'anime fantasy parade', category: 'Komunitas', tier: 'Gratis', status: 'Disetujui', image: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=900&q=85', description: 'Parade kostum dan panggung komunitas untuk semua fandom. Ada mini competition dan photo walk.', featured: true },
-    { id: 'e2', title: 'Nusantara Pop Culture Fest', date: '5 Desember 2026', location: 'JCC Senayan, Jakarta', theme: 'game fantasy pop culture', category: 'Unggulan', tier: 'Prabayar', status: 'Disetujui', image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=900&q=85', description: 'Festival pop culture, cosplay showcase, artist alley, dan meet-and-greet bersama kreator.', featured: true },
-    { id: 'e3', title: 'Malam Yokai: Cosplay Photo Walk', date: '12 Desember 2026', location: 'Kota Tua, Jakarta', theme: 'japan kimono yokai', category: 'Komunitas', tier: 'Gratis', status: 'Disetujui', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=85', description: 'Jelajah malam bertema folklore Jepang dengan sesi foto bersama komunitas.', featured: false },
+    { id: 'e1', title: 'Jakarta Cosplay Parade 2026', date: '21 November 2026', location: 'M Bloc Space, Jakarta', theme: 'anime fantasy parade', category: 'Komunitas', tier: 'Gratis', status: 'Disetujui', image: IMAGE_ASSETS.eventStrip, description: 'Parade kostum dan panggung komunitas untuk semua fandom. Ada mini competition dan photo walk.', featured: true },
+    { id: 'e2', title: 'Nusantara Pop Culture Fest', date: '5 Desember 2026', location: 'JCC Senayan, Jakarta', theme: 'game fantasy pop culture', category: 'Unggulan', tier: 'Prabayar', status: 'Disetujui', image: IMAGE_ASSETS.eventStrip, description: 'Festival pop culture, cosplay showcase, artist alley, dan meet-and-greet bersama kreator.', featured: true },
+    { id: 'e3', title: 'Malam Yokai: Cosplay Photo Walk', date: '12 Desember 2026', location: 'Kota Tua, Jakarta', theme: 'japan kimono yokai', category: 'Komunitas', tier: 'Gratis', status: 'Disetujui', image: IMAGE_ASSETS.eventStrip, description: 'Jelajah malam bertema folklore Jepang dengan sesi foto bersama komunitas.', featured: false },
 ];
 
 const categories = [
@@ -424,7 +450,7 @@ const topHeader = () => {
     return `
     <header class="site-header ${dashboardView ? 'admin-header' : ''}">
         <div class="container header-main">
-            <a class="brand" href="${adminView ? '#admin' : '#home'}" data-go="${adminView ? 'admin' : 'home'}" aria-label="Let'sCosplay ${adminView ? 'dashboard admin' : 'beranda'}"><span class="brand-mark">LC</span><span class="brand-name">Let's<span>Cosplay</span></span></a>
+            <a class="brand" href="${adminView ? '#admin' : '#home'}" data-go="${adminView ? 'admin' : 'home'}" aria-label="Let'sCosplay ${adminView ? 'dashboard admin' : 'beranda'}">${brandLogoMarkup}<span class="brand-name">Let's<span>Cosplay</span></span></a>
             ${dashboardView ? '<span class="header-spacer"></span>' : `<nav class="main-nav" aria-label="Navigasi ${adminView ? 'admin' : 'customer'}">${links}</nav>`}
             <div class="header-actions">
                 <button class="icon-button" type="button" data-action="theme" aria-label="Ganti tema" title="Ganti tema">${icon(theme() === 'dark' ? 'light_mode' : 'dark_mode')}</button>
@@ -439,7 +465,7 @@ const footer = () => `
     <footer class="site-footer">
         <div class="container">
             <div class="footer-grid">
-                <div><a class="brand" href="#home" data-go="home"><span class="brand-mark">LC</span><span class="brand-name">Let's<span>Cosplay</span></span></a><p class="footer-note">Temukan karakter favoritmu. Kami siapkan kostum, kamu ciptakan ceritanya.</p></div>
+                <div><a class="brand" href="#home" data-go="home">${brandLogoMarkup}<span class="brand-name">Let's<span>Cosplay</span></span></a><p class="footer-note">Temukan karakter favoritmu. Kami siapkan kostum, kamu ciptakan ceritanya.</p></div>
                 <div><h4>Jelajahi</h4><div class="footer-links"><a href="#catalog" data-go="catalog">Katalog kostum</a><a href="#events" data-go="events">Event cosplay</a><a href="#rules" data-go="rules">Aturan rental</a></div></div>
                 <div><h4>Bantuan</h4><div class="footer-links">${state.session ? `${state.session.role === 'customer' ? '<a href="#orders" data-go="orders">Pesanan saya</a>' : ''}<a href="#account" data-go="account">Pengaturan akun</a>` : '<a href="#login" data-go="login">Masuk akun</a><a href="#register" data-go="register">Daftar akun</a>'}<a href="#howto" data-go="howto">Cara sewa</a><a href="#organizer" data-go="organizer">Pasang iklan event</a></div></div>
                 <div><h4>Jam layanan</h4><div class="footer-links"><span>Senin–Sabtu</span><span>09.00–18.00 WIB</span><span>Jakarta, Indonesia</span></div></div>
@@ -475,7 +501,7 @@ const eventCard = (event, compact = false, aiMatch = null) => `
 
 const homePage = () => `
     <section class="home-hero">
-        <img class="hero-image" src="https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=2000&q=88" alt="Cosplay dan acara komunitas" fetchpriority="high">
+        <img class="hero-image" src="${IMAGE_ASSETS.hero}" alt="Cosplay dan acara komunitas" fetchpriority="high" style="object-fit:cover;object-position:center">
         <div class="hero-content"><div class="hero-copy reveal"><span class="eyebrow">Sewa kostum. Jadi karakter favoritmu.</span><h1 class="display">Panggung cerita<br>ada di tanganmu.</h1><p>Kostum cosplay terkurasi, siap dikirim ke rumah. Pilih karakter, tentukan tanggal, dan mulai petualanganmu.</p><div class="hero-actions"><button class="button button-primary" data-go="catalog" type="button">Jelajahi kostum ${icon('arrow_forward')}</button><button class="button button-secondary" data-go="events" type="button">Telusuri event bersama AI</button></div><div class="hero-meta"><div><strong>${state.inventory.length || '—'}</strong>Kostum pilihan</div><div><strong>${state.events.filter((event) => event.status === 'Disetujui').length || '—'}</strong>Event tayang</div><div><strong>50%</strong>Deposit refundable</div></div></div></div>
     </section>
     <div class="container"><form class="search-panel" id="home-search"><label class="search-control">${icon('search')}<input name="query" placeholder="Cari karakter atau serial" aria-label="Cari karakter atau serial"></label><label class="search-control">${icon('category')}<select name="category" aria-label="Kategori"><option value="">Semua kategori</option>${categories.map((category) => `<option>${category.name}</option>`).join('')}</select></label><label class="search-control">${icon('straighten')}<select name="size" aria-label="Ukuran"><option value="">Semua ukuran</option>${['XS', 'S', 'M', 'L', 'XL'].map((size) => `<option>${size}</option>`).join('')}</select></label><button class="button button-primary" type="submit">Cari kostum</button></form></div>
@@ -488,7 +514,7 @@ const homePage = () => `
         <div class="steps-grid">${[['01', 'Pilih karakter', 'Cari kostum, pilih ukuran, dan tentukan lama sewa.'], ['02', 'Lengkapi data', 'Isi formulir penyewa dan unggah dokumen yang diperlukan.'], ['03', 'Bayar DP', 'Amankan pesanan dengan pembayaran minimal 50%.'], ['04', 'Tampil percaya diri', 'Kostum dikirim, lalu kembalikan sesuai jadwal rental.']].map(([n, title, copy]) => `<article class="step-item"><span class="step-number">${n}</span><h3>${title}</h3><p>${copy}</p></article>`).join('')}</div>
         <div class="section-heading"><div><span class="eyebrow">Komunitas lebih dekat</span><h2>Event cosplay mendatang</h2></div><button class="button button-quiet" data-go="events" type="button">Semua event ${icon('arrow_forward')}</button></div>
         <div class="stack">${state.events.filter((event) => event.status === 'Disetujui').slice(0, 2).map((event) => eventCard(event, true)).join('')}</div>
-        <section class="event-strip" style="margin-top:42px"><div class="event-art" role="img" aria-label="Suasana event komunitas"></div><div class="event-copy"><span class="eyebrow">Untuk komunitas & organizer</span><h2>Event-mu pantas ditemukan.</h2><p>Promosikan gathering, festival, atau photo walk kepada komunitas cosplay yang tepat.</p><button class="button button-primary" data-go="organizer" type="button">Pasang iklan event ${icon('arrow_forward')}</button></div></section>
+        <section class="event-strip" style="margin-top:42px"><div class="event-art" role="img" aria-label="Suasana event komunitas" style="background-image:url('${IMAGE_ASSETS.eventStrip}');background-size:cover;background-position:center;background-repeat:no-repeat"></div><div class="event-copy"><span class="eyebrow">Untuk komunitas & organizer</span><h2>Event-mu pantas ditemukan.</h2><p>Promosikan gathering, festival, atau photo walk kepada komunitas cosplay yang tepat.</p><button class="button button-primary" data-go="organizer" type="button">Pasang iklan event ${icon('arrow_forward')}</button></div></section>
     </div>`;
 
 const catalogPage = () => {
@@ -638,7 +664,7 @@ const trackingPage = () => {
 
 const registerProfileFields = () => `<fieldset class="profile-fields" data-customer-only style="border:0;padding:0;margin:0;display:grid;gap:14px"><div class="field"><label for="reg-phone">Nomor telepon aktif *</label><input class="input" id="reg-phone" name="phone" type="tel" required autocomplete="tel" placeholder="08xx xxxx xxxx"></div><div class="field"><label for="reg-address">Alamat lengkap (alamat utama) *</label><textarea class="textarea" id="reg-address" name="address" required minlength="10" autocomplete="street-address" placeholder="Jalan, nomor rumah, RT/RW, kecamatan, kota, kode pos"></textarea><small class="muted">Jadi alamat pengiriman bawaan. Saat checkout kamu tetap bisa menggantinya.</small></div><div class="form-grid"><div class="field"><label for="reg-social">Media sosial *</label><select class="select" id="reg-social" name="socialPlatform" required><option value="">Pilih platform</option><option>Instagram</option><option>TikTok</option><option>X</option><option>Lainnya</option></select></div><div class="field"><label for="reg-handle">Username akun *</label><input class="input" id="reg-handle" name="socialHandle" required placeholder="@username"></div></div><div class="field"><label for="reg-guarantor">Nomor telepon penjamin *</label><input class="input" id="reg-guarantor" name="guarantor" type="tel" required placeholder="Nomor keluarga/kerabat"></div><div class="field"><label for="id-selfie">Foto selfie memegang identitas *</label><input class="input" id="id-selfie" name="idSelfie" type="file" accept="image/*" required><small class="muted">JPG/PNG, maks. 8 MB. Hanya dilihat admin untuk verifikasi.</small></div><div class="field"><span class="field-label">Pernah menyewa kostum sebelumnya? *</span><div class="quantity-row"><label class="filter-label"><input type="radio" name="previousRental" value="yes" required data-previous-rental> Ya</label><label class="filter-label"><input type="radio" name="previousRental" value="no" required data-previous-rental> Belum</label></div></div><div class="field" id="previous-store-wrap" hidden><label for="previous-store">Nama toko rental sebelumnya *</label><input class="input" id="previous-store" name="previousStore" placeholder="Nama toko / akun rental"></div></fieldset>`;
 
-const accountAuthPage = (register = false, adminOnly = false) => `<div class="container page-wrap"><div class="auth-layout"><div class="auth-art"><div class="auth-art-content"><span class="eyebrow">Akun Let'sCosplay</span><h2>${register ? 'Mulai cerita cosplay-mu.' : 'Masuk dan lanjutkan petualanganmu.'}</h2><p>Data dirimu cukup diisi sekali; saat menyewa tinggal pilih alamat pengiriman.</p></div></div><div class="auth-form-wrap"><span class="eyebrow">${register ? 'Pendaftaran akun' : 'Akses aman'}</span><h1>${register ? 'Buat akun penyewa' : adminOnly ? 'Masuk admin rental' : 'Masuk ke akunmu'}</h1><p class="muted small">${register ? 'Lengkapi data diri untuk mulai menyewa kostum.' : 'Gunakan email dan kata sandi yang terdaftar.'}</p><form class="auth-form" id="role-auth-form" data-mode="${register ? 'register' : 'login'}" data-admin-only="${adminOnly ? 'true' : 'false'}">${register ? '<div class="field"><label for="auth-name">Nama lengkap sesuai identitas</label><input class="input" id="auth-name" name="name" minlength="3" required autocomplete="name"></div>' : ''}<div class="field"><label for="auth-email">Email</label><input class="input" type="email" id="auth-email" name="email" required autocomplete="email" placeholder="nama@email.com" value="${adminOnly ? 'adminrental123@gmail.com' : ''}"></div><div class="field"><label for="auth-password">Kata sandi</label><input class="input" type="password" id="auth-password" name="password" required minlength="8" autocomplete="${register ? 'new-password' : 'current-password'}" placeholder="Masukkan kata sandi"></div>${register ? registerProfileFields() : ''}<p class="small" data-auth-error role="alert" hidden></p>${register ? '<label class="checkline"><input type="checkbox" name="terms" required> Saya menyetujui syarat penggunaan dan kebijakan privasi.</label>' : ''}<button class="button button-primary" type="submit">${register ? 'Daftar sekarang' : 'Masuk'} ${icon('arrow_forward')}</button></form><p class="auth-switch">${register ? 'Sudah memiliki akun?' : 'Belum memiliki akun?'} <button class="text-button" type="button" data-go="${register ? 'login' : 'register'}">${register ? 'Masuk' : 'Daftar penyewa'}</button></p></div></div></div>`;
+const accountAuthPage = (register = false, adminOnly = false) => `<div class="container page-wrap"><div class="auth-layout"><div class="auth-art ${register ? 'auth-art-register' : ''}" style="background-image:linear-gradient(180deg,rgba(0,0,0,.12) 0%,rgba(0,0,0,.62) 100%),url('${register ? IMAGE_ASSETS.register : IMAGE_ASSETS.login}');background-size:cover;background-position:center top;background-repeat:no-repeat"><div class="auth-art-content"><span class="eyebrow">Akun Let'sCosplay</span><h2>${register ? 'Mulai cerita cosplay-mu.' : 'Masuk dan lanjutkan petualanganmu.'}</h2><p>Data dirimu cukup diisi sekali; saat menyewa tinggal pilih alamat pengiriman.</p></div></div><div class="auth-form-wrap"><span class="eyebrow">${register ? 'Pendaftaran akun' : 'Akses aman'}</span><h1>${register ? 'Buat akun penyewa' : adminOnly ? 'Masuk admin rental' : 'Masuk ke akunmu'}</h1><p class="muted small">${register ? 'Lengkapi data diri untuk mulai menyewa kostum.' : 'Gunakan email dan kata sandi yang terdaftar.'}</p><form class="auth-form" id="role-auth-form" data-mode="${register ? 'register' : 'login'}" data-admin-only="${adminOnly ? 'true' : 'false'}">${register ? '<div class="field"><label for="auth-name">Nama lengkap sesuai identitas</label><input class="input" id="auth-name" name="name" minlength="3" required autocomplete="name"></div>' : ''}<div class="field"><label for="auth-email">Email</label><input class="input" type="email" id="auth-email" name="email" required autocomplete="email" placeholder="nama@email.com" value="${adminOnly ? 'adminrental123@gmail.com' : ''}"></div><div class="field"><label for="auth-password">Kata sandi</label><input class="input" type="password" id="auth-password" name="password" required minlength="8" autocomplete="${register ? 'new-password' : 'current-password'}" placeholder="Masukkan kata sandi"></div>${register ? registerProfileFields() : ''}<p class="small" data-auth-error role="alert" hidden></p>${register ? '<label class="checkline"><input type="checkbox" name="terms" required> Saya menyetujui syarat penggunaan dan kebijakan privasi.</label>' : ''}<button class="button button-primary" type="submit">${register ? 'Daftar sekarang' : 'Masuk'} ${icon('arrow_forward')}</button></form><p class="auth-switch">${register ? 'Sudah memiliki akun?' : 'Belum memiliki akun?'} <button class="text-button" type="button" data-go="${register ? 'login' : 'register'}">${register ? 'Masuk' : 'Daftar penyewa'}</button></p></div></div></div>`;
 
 const eventMatchDetails = (event, preferences) => {
     const terms = preferences.query.toLowerCase().split(/[^a-z0-9]+/).filter((term) => term.length > 2);
@@ -718,7 +744,7 @@ const organizerPage = () => {
     const submissionsPanel = `<section class="panel"><h2>Status pengajuan</h2>${submissions.length ? submissions.map((event) => `<article class="organizer-status-card"><strong>${escapeHtml(event.title)}</strong><p class="muted small">${escapeHtml(event.date)} · ${escapeHtml(event.status)}</p><span class="status-pill ${event.status === 'Disetujui' ? 'success' : event.status === 'Ditolak' ? 'danger' : ''}">${escapeHtml(event.paymentStatus || event.status)}</span>${event.walletStatus && event.walletStatus !== 'Belum ada' ? `<p class="small">Dompet (simulasi): ${escapeHtml(event.walletStatus)}</p>` : ''}${event.refundAmount !== null && event.refundAmount !== undefined ? `<p class="small">Refund: ${money(event.refundAmount)} · ${escapeHtml(event.refundStatus || '')}</p>` : ''}${event.paymentReviewDeadlineAt ? `<p class="muted small">Batas respons admin: ${escapeHtml(new Date(event.paymentReviewDeadlineAt).toLocaleString('id-ID'))}</p>` : ''}</article>`).join('') : '<p class="muted small">Pengajuan yang dikirim dari perangkat ini akan muncul di sini.</p>'}</section>`;
 
     return `<div class="container page-wrap"><div class="breadcrumb"><button class="text-button" data-go="organizer">Pilih paket</button><span>/</span><span>${paid ? 'Iklan Prabayar' : 'Iklan Gratis'}</span></div>
-        <section class="organizer-hero"><div><span class="eyebrow" style="color:#ffb8d2">Portal komunitas & organizer</span><h1>${paid ? 'Siapkan promosi event' : 'Pasang iklan event komunitas'}</h1><p>${paid ? 'Cukup unggah poster dan PDF rincian event. AI menyiapkan materi promosi dan pratinjau untuk kamu pilih sebelum pembayaran.' : 'Isi detail event, lihat pratinjau, lalu kirim untuk ditinjau admin.'}</p></div><div class="organizer-hero-art" role="img" aria-label="Festival komunitas"></div></section>
+        <section class="organizer-hero"><div><span class="eyebrow" style="color:#ffb8d2">Portal komunitas & organizer</span><h1>${paid ? 'Siapkan promosi event' : 'Pasang iklan event komunitas'}</h1><p>${paid ? 'Cukup unggah poster dan PDF rincian event. AI menyiapkan materi promosi dan pratinjau untuk kamu pilih sebelum pembayaran.' : 'Isi detail event, lihat pratinjau, lalu kirim untuk ditinjau admin.'}</p></div><div class="organizer-hero-art" role="img" aria-label="Festival komunitas" style="background-image:url('${IMAGE_ASSETS.organizerHero}');background-size:cover;background-position:center;background-repeat:no-repeat"></div></section>
         <div class="organizer-grid ${paid ? 'organizer-grid-paid' : ''}"><section class="panel" id="organizer-submit"><h2>${paid ? 'Data event & pembayaran' : 'Form iklan Gratis'}</h2><form id="organizer-form" class="stack" data-tier="${tier}">
             <input type="hidden" name="submissionToken">
             ${fields}
@@ -3000,7 +3026,16 @@ const askEventConsultant = async (form) => {
 
 document.addEventListener('error', (event) => {
     const img = event.target;
-    if (img?.tagName === 'IMG' && !img.dataset.fallback && !String(img.src).startsWith('data:')) { img.dataset.fallback = '1'; img.src = FALLBACK_IMG; }
+    if (img?.tagName !== 'IMG' || String(img.src).startsWith('data:')) return;
+    const stage = img.dataset.fallback || '0';
+    if (stage === '0') {
+        // Tahap 1: foto kostum lokal yang cocok dengan nama (alt), jika tidak ada langsung ke placeholder SVG.
+        img.dataset.fallback = '1';
+        img.src = localCharacterImage(img.alt) || FALLBACK_IMG;
+    } else if (stage === '1') {
+        img.dataset.fallback = '2';
+        img.src = FALLBACK_IMG;
+    }
 }, true);
 
 window.addEventListener('popstate', () => {
