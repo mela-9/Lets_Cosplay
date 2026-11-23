@@ -231,3 +231,40 @@ html[data-theme='dark'] .chat-card img { background: #17131b; }
 html[data-theme='dark'] .chat-card-body small { color: #b9a9b3; }
 
 .rules-nav a.active { color: var(--pink-deep, #d9387b); background: var(--surface-pink, #fff0f6); }
+
+/* ==========================================================
+   Gambar lokal Let'sCosplay (public/images/)
+   ========================================================== */
+
+/* Halaman Masuk (#login) */
+.auth-art {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.auth-art::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, .12) 0%, rgba(0, 0, 0, .62) 100%),
+        url('/images/masuk.jpg') center top / cover no-repeat !important;
+}
+
+/* Halaman Daftar (#register) */
+.auth-art.auth-art-register::before {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, .12) 0%, rgba(0, 0, 0, .62) 100%),
+        url('/images/daftar.jpg') center top / cover no-repeat !important;
+}
+
+/* Banner "Event-mu pantas ditemukan." */
+.event-art {
+    background: url('/images/event.jpeg') center / cover no-repeat !important;
+}
+
+/* Hero organizer (portal komunitas) */
+.organizer-hero-art {
+    background: url('/images/event.jpeg') center / cover no-repeat !important;
+}

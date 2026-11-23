@@ -139,7 +139,7 @@ main { flex: 1; }
 .step-item h3 { margin: 15px 0 7px; font-size: 1rem; }
 .step-item p { max-width: 240px; margin: 0; color: var(--muted); font-size: .83rem; line-height: 1.65; }
 .event-strip { display: grid; grid-template-columns: 1.1fr 1fr; overflow: hidden; border-radius: 16px; color: white; background: #281e29; }
-.event-art { min-height: 270px; background: center / cover no-repeat url('https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=1200&q=85'); }
+.event-art { min-height: 270px; background: center / cover no-repeat url('/images/event.jpeg'); }
 .event-copy { align-self: center; padding: 35px clamp(22px, 4vw, 52px); }
 .event-copy .eyebrow { color: #ffb8d2; }
 .event-copy h2 { margin: 10px 0; font-size: 1.75rem; }
@@ -253,7 +253,8 @@ main { flex: 1; }
 
 .auth-layout { min-height: 650px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); box-shadow: var(--shadow); }
 .auth-art { position: relative; min-height: 600px; display: flex; align-items: end; padding: 36px; overflow: hidden; color: white; background: #251b28; }
-.auth-art::before { position: absolute; inset: 0; content: ''; background: linear-gradient(0deg, rgb(24 15 26 / 83%), transparent 78%), url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1100&q=85') center / cover; }
+.auth-art::before { position: absolute; inset: 0; content: ''; background: linear-gradient(0deg, rgb(24 15 26 / 83%), transparent 78%), url('/images/masuk.jpg') center top / cover no-repeat; }
+.auth-art.auth-art-register::before { background: linear-gradient(0deg, rgb(24 15 26 / 83%), transparent 78%), url('/images/daftar.jpg') center top / cover no-repeat; }
 .auth-art-content { position: relative; }
 .auth-art-content h2 { max-width: 400px; margin: 10px 0; font-size: 2rem; }
 .auth-form-wrap { align-self: center; width: min(440px, 100%); padding: 45px; margin: 0 auto; }
